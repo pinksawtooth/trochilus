@@ -1,0 +1,8 @@
+LIBRARY "body"
+
+EXPORTS
+	SendMsg					@1
+	GetCID					@2
+	InitServant				@3
+	DeinitServant			@4
+	InstallService			@5
