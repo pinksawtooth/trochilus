@@ -9,6 +9,9 @@ Features
 ---
 * Support TCP/IP,HTTP,DNS
 * Serilize Protocol
+* Support Non-UAC
+* Shellcode Extension
+* Remote Uninstall
 * Singled-Threaded
 * File Manager
 * Remote Shell
