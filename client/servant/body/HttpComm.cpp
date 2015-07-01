@@ -42,7 +42,7 @@ BOOL HttpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSend
 BOOL HttpComm::Connect( ULONG targetIP )
 {
 #ifdef _DEBUG
-	g_ConfigInfo.nPort = 8081;
+	g_ConfigInfo.nPort = 8082;
 #endif
 
 	char szPort[255] = {0};

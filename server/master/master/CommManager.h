@@ -97,11 +97,7 @@ private:
 	void HandleMsgByMsgHandler(MSGID msgid, const CommData& commData);
 
 	//HTTP消息处理
-	static BOOL HttpMsgHandler(SOCKADDR_IN addr, SOCKET clientSocket, const LPBYTE pData, DWORD dwDataSize, LPBYTE pSessionData, LPVOID lpParameter);
-	BOOL HttpMsgHandleProc(SOCKADDR_IN addr, SOCKET clientSocket, const LPBYTE pData, DWORD dwDataSize, LPBYTE pSessionData);
-	void MakeHttpHeader(std::ostringstream& ss, DWORD dwContentLength) const;
-	BOOL ParseHttpPacket(SOCKET sSocket,LPBYTE pData,int nSize,LPBYTE* outData,int& outSize);
-	void FreeHttpPacket(SOCKET s);
+	static int HttpMsgHandler(struct mg_connection *conn, enum mg_event ev);
 
 	//UDP消息处理
 	static void UdpMsgHandler(SOCKADDR_IN addr, SOCKET listenSocket, const LPBYTE pData, DWORD dwDataSize, LPVOID lpParameter);

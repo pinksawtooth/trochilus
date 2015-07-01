@@ -124,6 +124,7 @@
     <ClInclude Include="..\..\..\base\include\json\value.h" />
     <ClInclude Include="..\..\..\base\include\json\writer.h" />
     <ClInclude Include="..\..\..\base\include\md5\md5.h" />
+    <ClInclude Include="..\..\..\base\include\mongoose\mongoose.h" />
     <ClInclude Include="..\..\..\base\include\ods.h" />
     <ClInclude Include="..\..\..\base\include\socket\MySocket.h" />
     <ClInclude Include="..\..\..\base\include\tcpserver\TcpServer.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="..\..\..\base\include\json\json_value.cpp" />
     <ClCompile Include="..\..\..\base\include\json\json_writer.cpp" />
     <ClCompile Include="..\..\..\base\include\md5\md5.cpp" />
+    <ClCompile Include="..\..\..\base\include\mongoose\mongoose.cpp" />
     <ClCompile Include="..\..\..\base\include\ods.cpp" />
     <ClCompile Include="..\..\..\base\include\socket\MySocket.cpp" />
     <ClCompile Include="..\..\..\base\include\tcpserver\TcpServer.cpp" />

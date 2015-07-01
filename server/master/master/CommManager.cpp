@@ -7,6 +7,7 @@
 #include "common.h"
 #include "CommManager.h"
 #include "DnsResolver.h"
+#include "mongoose/mongoose.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -57,6 +58,17 @@ void CommManager::Deinit()
 
 	::WSACleanup();
 }
+
+
+void http_thread(LPVOID lpParameter)
+{
+	mg_server* server  = (mg_server*)lpParameter;
+	for (;;) {
+		mg_poll_server(server, 1000);
+	}
+
+};
+
 int CommManager::AddCommService(int port,int name)
 {
 	COMM_MAP::iterator it;
@@ -79,16 +91,30 @@ int CommManager::AddCommService(int port,int name)
 	{
 	case COMMNAME_HTTP:
 		{
-			TcpServer* httpServer = new TcpServer;
-			httpServer->Init(HttpMsgHandler,this);
+			struct mg_server *server;
 
-			if (! httpServer->StartListening(port, 0, 30))
-			{
-				delete httpServer;
-				return 0;
-			}
+			// Create and configure the server
+			server = mg_create_server(NULL, HttpMsgHandler);
 
-			info.lpParameter = httpServer;
+			char szPort[255];
+
+			memset(szPort,0,255);
+
+			itoa(port,szPort,10);
+
+			mg_set_option(server, "listening_port", szPort);
+
+			_beginthread(http_thread,0,server);
+// 			TcpServer* httpServer = new TcpServer;
+// 			httpServer->Init(HttpMsgHandler,this);
+// 
+// 			if (! httpServer->StartListening(port, 0, 30))
+// 			{
+// 				delete httpServer;
+// 				return 0;
+// 			}
+// 
+			info.lpParameter = server;
 			info.nCommName = COMMNAME_HTTP;
 
 			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
@@ -150,8 +176,7 @@ BOOL CommManager::DeleteCommService(int serialid)
 		{
 		case COMMNAME_HTTP:
 			{
-				TcpServer* httpServer = (TcpServer*)info.lpParameter;
-				httpServer->Stop();
+				mg_destroy_server((mg_server**)&info.lpParameter);
 				break;
 			}
 		case COMMNAME_DNS:
@@ -410,221 +435,41 @@ void CommManager::HandleMsgByMsgHandler( MSGID msgid, const CommData& commData )
 	}
 }
 
-BOOL CommManager::HttpMsgHandler( SOCKADDR_IN addr, SOCKET clientSocket, const LPBYTE pData, DWORD dwDataSize, LPBYTE pSessionData, LPVOID lpParameter )
-{
-	if (NULL == pData) return FALSE;
-
-	CommManager* pMgr = (CommManager*) lpParameter;
-	return pMgr->HttpMsgHandleProc(addr, clientSocket, pData, dwDataSize, pSessionData);
-}
-
-
-int GetHttpHeaderSize(const LPBYTE pRecvData,int nLength)
-{
-	char* lpHeaderEnd = strstr((char*)pRecvData,"\r\n\r\n");
-	if (!lpHeaderEnd)
-	{
-		return 0;
-	}
-	lpHeaderEnd += 4;
-	return (LPBYTE)lpHeaderEnd - (LPBYTE)pRecvData;
-}
-
-int GetHttpPacketSize(const LPBYTE pRecvData,int nLength)
-{
-	int nSaveSize = 0;
-	int nSize = lstrlenA("Content-Length: ");
-
-	int nHeaderLength = GetHttpHeaderSize(pRecvData,nLength);
-
-	char* lpLength = strstr((char*)pRecvData,"Content-Length: ");
-
-	if (!lpLength || !strstr(lpLength,"\r"))
-	{
-		return 0xFFFFFFFF;
-	}
-
-	lpLength += nSize;
-
-	lpLength = strstr(lpLength,"\r") - 1;
-
-	int i = 0;
-	int sum = 1;
-
-	while(*lpLength != ' ')
-	{
-		nSaveSize += (lpLength[0]-'0')*sum;
-		i ++;
-		lpLength --;
-		sum *= 10;
-	}
-
-	return nSaveSize;
-
-}
-
-BOOL IsHttpHead(PBYTE pData,DWORD dwSize)
-{
-	while(dwSize)
-	{
-		if ((*(pData + dwSize) == '\n') && (*(pData + dwSize - 1) == '\r'))
-		{
-			if ((*(pData + dwSize - 2) == '\n') && (*(pData + dwSize - 3) == '\r'))
-			{
-				return TRUE;
-			}
-		}
-
-		dwSize--;
-	}
-	return FALSE;
-}
-
-BOOL CommManager::ParseHttpPacket( SOCKET sSocket,LPBYTE pData,int dwDataSize,LPBYTE* outData,int& outSize )
-{
-	HTTP_PACKET packet;
-
-	BOOL ret = FALSE;
-
-	//首次处理某个包
-	HttpPacketMap::iterator it = m_httpPacketMap.find(sSocket);
-	if (it == m_httpPacketMap.end())
-	{
-		packet.buffer = (LPBYTE)malloc(dwDataSize);
-
-		memcpy(packet.buffer,pData,dwDataSize);
-
-		packet.nCurSize = dwDataSize;
-
-	}
-	//粘包了
-	else
-	{
-		packet = m_httpPacketMap[sSocket];
-
-		LPBYTE tmp = (LPBYTE)malloc(packet.nCurSize+dwDataSize);
-
-		memcpy(tmp,packet.buffer,packet.nCurSize);
-		memcpy(tmp+packet.nCurSize,pData,dwDataSize);
-
-		free(packet.buffer);
-
-		packet.buffer = tmp;
-		packet.nCurSize += dwDataSize;
-
-	}
-
-	//检查包是否完整，进入处理流程
-	int nBody = GetHttpPacketSize(packet.buffer,packet.nCurSize);
-
-	if (nBody != 0xFFFFFFFF)
-	{
-		packet.nMaxSize = nBody;
-	}
-
-	int nHead = GetHttpHeaderSize(packet.buffer,packet.nCurSize);
-
-	if (packet.nCurSize - nBody == nHead)
-	{
-		LPBYTE p = packet.buffer;
-
-		for (int i = 0 ; i < packet.nCurSize ; i++)
-		{
-			if (p[i] == '\r' && p[i+1] == '\n')
-			{
-				if (p[i + 2] == '\r' && p[i+3] == '\n')
-				{
-					*outData = p + i + 4;
-				}
-			}
-		}
-
-		outSize = nBody;
-		ret = TRUE;
-	}
-	m_httpPacketMap[sSocket] = packet;
-
-	return ret;
-}
-
-void CommManager::FreeHttpPacket( SOCKET s )
-{
-	HttpPacketMap::iterator it = m_httpPacketMap.find(s);
-
-	if (it != m_httpPacketMap.end())
-	{
-		free(it->second.buffer);
-		m_httpPacketMap.erase(it);
-	}
-
-}
-
-BOOL CommManager::HttpMsgHandleProc( SOCKADDR_IN addr, SOCKET clientSocket, const LPBYTE pData, DWORD dwDataSize, LPBYTE pSessionData )
+int CommManager::HttpMsgHandler( struct mg_connection *conn, enum mg_event ev )
 {
 	BOOL bValidData = FALSE;
-	BOOL bHasReply = FALSE;
-	do 
+	BOOL bNeedReply = FALSE;
+	BOOL bHasRecv = FALSE;
+
+	ByteBuffer buffer;
+	int nOutSize = 0;
+	LPBYTE pOutBuf = NULL;
+
+	ByteBuffer toSendBuffer;
+	SOCKADDR_IN addr = {0};
+	char szLength[255] = {0};
+
+	switch (ev) 
 	{
-		m_csHttpmap.Enter();
+	case MG_AUTH: return MG_TRUE;
+
+	case MG_REQUEST:
+
+		bNeedReply = CommManager::GetInstanceRef().HandleMessageAndReply(addr,(LPBYTE)conn->content , conn->content_len, COMMNAME_HTTP, bValidData, HTTP_COMM_REPLY_MAXSIZE, toSendBuffer);
+
+		sprintf_s(szLength,"%d",toSendBuffer.Size());
+
+		mg_send_header(conn,
+			"Content-Length",
+			szLength);
+
+		if (bNeedReply)
 		{
-			PBYTE p = NULL;
-			int iDataLength = 0;
-
-			if(!ParseHttpPacket(clientSocket,pData,dwDataSize,&p,iDataLength))
-			{
-				m_csHttpmap.Leave();
-				return TRUE;
-			}
-			ByteBuffer toSendBuffer;
-			bHasReply = HandleMessageAndReply(addr, p, iDataLength, COMMNAME_HTTP, bValidData, HTTP_COMM_REPLY_MAXSIZE, toSendBuffer);
-
-			FreeHttpPacket(clientSocket);
-
-			if (bHasReply)
-			{
-				HttpReply(clientSocket, toSendBuffer, toSendBuffer.Size());
-			}
+			mg_send_data(conn,toSendBuffer,toSendBuffer.Size());
 		}
-		m_csHttpmap.Leave();
+		return MG_TRUE;
 
-	} while (FALSE);
-	
-	if (! bValidData)
-	{
-		std::string data = "Website in Bulding";
-		HttpReply(clientSocket, (LPBYTE)data.c_str(), data.size());
-		return FALSE;
-	}
-	
-	return TRUE;
-}
-
-void CommManager::MakeHttpHeader( std::ostringstream& ss, DWORD dwContentLength) const
-{
-	ss << "HTTP/1.1 200 OK\r\n";
-	ss << "Content-type: text/html\r\n";
-	ss << "vary: Vary: Accept-Encoding\r\n";
-	ss << "Content-length: " << dwContentLength << "\r\n";
-	ss << "Connection: Keep-Alive\r\n";
-	ss << "\r\n";
-}
-
-void CommManager::HttpReply( SOCKET clientSocket, const LPBYTE pData, DWORD dwSize ) const
-{
-	MySocket sock(clientSocket, FALSE);
-
-	std::ostringstream ss;
-	MakeHttpHeader(ss, dwSize);
-	
-	std::string data((LPCSTR)pData, dwSize);
-	ss << data;
-	
-	std::string tosend = ss.str();
-
-	int iSent = sock.SendAll(tosend.c_str(), tosend.size());
-	if (!iSent)
-	{
-		errorLog(_T("sent %d. expected:%u"), iSent, tosend.size());
+	default: return MG_FALSE;
 	}
 }
 

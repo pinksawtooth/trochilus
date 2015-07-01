@@ -230,7 +230,7 @@ SHELL_API BOOL Init(BOOL bWait)
 	g_ConfigInfo.nFirstConnectMinute = -1;
 	g_ConfigInfo.nTryConnectIntervalM = 1;
 	strcpy_s(g_ConfigInfo.szGroups, sizeof(g_ConfigInfo.szGroups), "Default");
-	strcpy_s(g_ConfigInfo.szAddr, sizeof(g_ConfigInfo.szAddr), "192.168.214.1");
+	strcpy_s(g_ConfigInfo.szAddr, sizeof(g_ConfigInfo.szAddr), "127.0.0.1");
 
 	//	strcpy_s(g_CampInfo.szDllName, sizeof(g_CampInfo.szDllName), t2a(SERVANT_SHELL_BINNAME));
 // #else

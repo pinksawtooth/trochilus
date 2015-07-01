@@ -70,6 +70,9 @@
     <Filter Include="download">
       <UniqueIdentifier>{d9d0561e-f460-416c-ae36-6044403a32c1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\mongoose">
+      <UniqueIdentifier>{a937e001-c3a5-446e-bd28-6c42d7d263f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -309,6 +312,9 @@
     <ClInclude Include="..\..\..\base\include\ods.h">
       <Filter>common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\base\include\mongoose\mongoose.h">
+      <Filter>include\mongoose</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -406,6 +412,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\base\include\ods.cpp">
       <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\base\include\mongoose\mongoose.cpp">
+      <Filter>include\mongoose</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
