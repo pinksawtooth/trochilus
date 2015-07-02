@@ -16,12 +16,6 @@
     <Filter Include="include">
       <UniqueIdentifier>{f29e9ffb-ca75-456e-b03c-2450a78e509b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\tcpserver">
-      <UniqueIdentifier>{d59bb7e5-04b1-49bb-ba15-376a81b2a193}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\udpserver">
-      <UniqueIdentifier>{ebfcf9d4-aa40-4ff8-82ad-cf3d656fbac6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="comm">
       <UniqueIdentifier>{1257f4b8-72d9-4377-b68e-39ba58f5ca1b}</UniqueIdentifier>
     </Filter>
@@ -98,18 +92,6 @@
     </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\base\include\udpserver\UdpServer.h">
-      <Filter>include\udpserver</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\base\include\udpserver\UdpServerData.h">
-      <Filter>include\udpserver</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\base\include\tcpserver\TcpServer.h">
-      <Filter>include\tcpserver</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\base\include\tcpserver\TcpServerData.h">
-      <Filter>include\tcpserver</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\base\include\tstring.h">
       <Filter>include</Filter>
@@ -319,12 +301,6 @@
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\base\include\udpserver\UdpServer.cpp">
-      <Filter>include\udpserver</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\base\include\tcpserver\TcpServer.cpp">
-      <Filter>include\tcpserver</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\base\include\tstring.cpp">
       <Filter>include</Filter>

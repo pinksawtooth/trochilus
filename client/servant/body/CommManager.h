@@ -2,6 +2,7 @@
 #include "IComm.h"
 #include "CommData.h"
 #include "CutupProtocol.h"
+#include <deque>
 #include "../../pub/ModuleInterface.h"
 
 class CommManager

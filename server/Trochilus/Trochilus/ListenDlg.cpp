@@ -41,15 +41,15 @@ void CListenDlg::InitView()
 	m_Imagelist.Add(AfxGetApp()->LoadIcon(IDI_ICON_LIS));
 	m_listenList.SetImageList(&m_Imagelist);
 
-	m_protoList.InsertString(0,_T("TCP"));
-	m_protoList.SetItemData(0,2);
-	m_protoList.InsertString(1,_T("HTTP"));
-	m_protoList.SetItemData(1,4);
-	m_protoList.InsertString(2,_T("DNS"));
-	m_protoList.SetItemData(2,5);
+// 	m_protoList.InsertString(0,_T("TCP"));
+// 	m_protoList.SetItemData(0,2);
+	m_protoList.InsertString(0,_T("HTTP"));
+	m_protoList.SetItemData(0,4);
+// 	m_protoList.InsertString(2,_T("DNS"));
+// 	m_protoList.SetItemData(2,5);
 	m_protoList.SetCurSel(0);
 
-	SetDlgItemText(IDC_EDIT_PORT,_T("8081"));
+	SetDlgItemText(IDC_EDIT_PORT,_T("8082"));
 }
 
 
@@ -111,15 +111,11 @@ void CListenDlg::OnBnClickedButtonStart()
 	CString strProtocol;
 	if (nSelProto == 0)
 	{
-		strProtocol = _T("TCP");
+		strProtocol = _T("HTTP");
 	}
 	else if (nSelProto == 1)
 	{
-		strProtocol = _T("HTTP");
-	}
-	else if (nSelProto == 2)
-	{
-		strProtocol = _T("DNS");
+		strProtocol = _T("TCP");
 	}
 
 	m_listenList.InsertItem(nCount,strProtocol,0);
@@ -198,19 +194,15 @@ void CListenDlg::OnCbnSelendcancelComboProto()
 void CListenDlg::OnCbnSelchangeComboProto()
 {
 	int nSel = m_protoList.GetCurSel();
-	if (nSel == 2)
+
+	if(nSel == 0)
 	{
-		SetDlgItemText(IDC_EDIT_PORT,_T("53"));
-		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(FALSE);
+		SetDlgItemText(IDC_EDIT_PORT,_T("8082"));
+		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(TRUE);
 	}
 	else if(nSel == 1)
 	{
-		SetDlgItemText(IDC_EDIT_PORT,_T("8081"));
-		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(TRUE);
-	}
-	else if(nSel == 0)
-	{
-		SetDlgItemText(IDC_EDIT_PORT,_T("8081"));
+		SetDlgItemText(IDC_EDIT_PORT,_T("8082"));
 		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(TRUE);
 	}
 }

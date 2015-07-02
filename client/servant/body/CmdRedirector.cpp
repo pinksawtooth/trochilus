@@ -50,7 +50,7 @@ void CmdRedirector::OnChildStdOutWrite( LPCSTR lpszOutput )
 void CmdRedirector::OnChildTerminate()
 {
 	//SendOutput("PROCESS TERMINATED.");
-	CommManager::GetInstanceRef().CleanMsgByMSGID(MSGID_CMDREDIRECT_OUTPUT);
+	//CommManager::GetInstanceRef().CleanMsgByMSGID(MSGID_CMDREDIRECT_OUTPUT);
 }
 
 void CmdRedirector::SendOutput( LPCSTR output )

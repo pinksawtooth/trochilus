@@ -25,9 +25,6 @@
     <Filter Include="common">
       <UniqueIdentifier>{a85322f9-ceed-41e7-88c0-4ee270e95b9d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="comm\icmp">
-      <UniqueIdentifier>{6eef823a-5e6d-4386-a082-77d1bf536695}</UniqueIdentifier>
-    </Filter>
     <Filter Include="comm\http">
       <UniqueIdentifier>{60dd0ce9-2ec6-4d46-a40d-69346d849108}</UniqueIdentifier>
     </Filter>
@@ -101,9 +98,6 @@
     <ClInclude Include="IComm.h">
       <Filter>comm</Filter>
     </ClInclude>
-    <ClInclude Include="IcmpComm.h">
-      <Filter>comm\icmp</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\base\include\AutoCleanup.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -136,9 +130,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\common\BinNames.h">
       <Filter>global_common</Filter>
-    </ClInclude>
-    <ClInclude Include="DnsComm.h">
-      <Filter>comm\dns</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\common\DnsResolver.h">
       <Filter>comm\dns</Filter>
@@ -226,9 +217,6 @@
     <ClCompile Include="CommManager.cpp">
       <Filter>comm</Filter>
     </ClCompile>
-    <ClCompile Include="IcmpComm.cpp">
-      <Filter>comm\icmp</Filter>
-    </ClCompile>
     <ClCompile Include="Module.cpp">
       <Filter>module</Filter>
     </ClCompile>
@@ -246,9 +234,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\base\include\file\MyFile.cpp">
       <Filter>include\file</Filter>
-    </ClCompile>
-    <ClCompile Include="DnsComm.cpp">
-      <Filter>comm\dns</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\common\DnsResolver.cpp">
       <Filter>comm\dns</Filter>

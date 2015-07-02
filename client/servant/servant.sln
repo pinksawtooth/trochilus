@@ -4,8 +4,15 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "inst", "inst\inst.vcxproj", "{848C573B-28B8-49C1-868F-C083D2BCA8E9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestServant", "TestServant\TestServant.vcxproj", "{14D70374-0D2D-4330-AEC0-3B18F7F1C976}"
+	ProjectSection(ProjectDependencies) = postProject
+		{69CBFC59-4424-4CA8-A667-83D08DEAC46B} = {69CBFC59-4424-4CA8-A667-83D08DEAC46B}
+		{3CDFEC62-29C0-4EC1-83D0-C575C1A00E64} = {3CDFEC62-29C0-4EC1-83D0-C575C1A00E64}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "body", "body\body.vcxproj", "{3CDFEC62-29C0-4EC1-83D0-C575C1A00E64}"
+	ProjectSection(ProjectDependencies) = postProject
+		{69CBFC59-4424-4CA8-A667-83D08DEAC46B} = {69CBFC59-4424-4CA8-A667-83D08DEAC46B}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shell", "shell\shell.vcxproj", "{69CBFC59-4424-4CA8-A667-83D08DEAC46B}"
 EndProject

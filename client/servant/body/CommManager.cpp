@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "env/Wow64.h"
-#include "IcmpComm.h"
 #include "HttpComm.h"
-#include "DnsComm.h"
 #include "TcpComm.h"
 #include "common.h"
 #include "Manager.h"
@@ -25,9 +23,7 @@ BOOL CommManager::Init()
 	ZeroMemory(m_commList, sizeof(m_commList));
 	ZeroMemory(m_commAvailableList, sizeof(m_commAvailableList));
 
-	m_commList[COMMNAME_ICMP] = new IcmpComm;
 	m_commList[COMMNAME_HTTP] = new HttpComm;
-	m_commList[COMMNAME_DNS] = new DnsComm;
 	m_commList[COMMNAME_TCP] = new TcpComm;
 
 	m_hExitEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -193,17 +189,13 @@ COMM_NAME CommManager::GetDefaultComm() const
 BOOL CommManager::Str2Commname( LPCTSTR str, COMM_NAME& commName ) const
 {
 	commName = COMMNAME_MAX;
-	if (_tcscmp(str, _T("icmp")) == 0)
-	{
-		commName = COMMNAME_ICMP;
-	}
-	else if (_tcscmp(str, _T("http")) == 0)
+	if (_tcscmp(str, _T("http")) == 0)
 	{
 		commName = COMMNAME_HTTP;
 	}
-	else if (_tcscmp(str, _T("dns")) == 0)
+	else if (_tcscmp(str, _T("tcp")) == 0)
 	{
-		commName = COMMNAME_DNS;
+		commName = COMMNAME_TCP;
 	}
 
 	return (COMMNAME_MAX != commName);
@@ -213,14 +205,11 @@ BOOL CommManager::Commname2Str( COMM_NAME commName, tstring& str ) const
 {
 	switch (commName)
 	{
-	case COMMNAME_ICMP:
-		str = _T("icmp");
-		break;
 	case COMMNAME_HTTP:
 		str = _T("http");
 		break;
-	case COMMNAME_DNS:
-		str = _T("dns");
+	case COMMNAME_TCP:
+		str = _T("tcp");
 		break;
 	default:
 		str = _T("invalid");

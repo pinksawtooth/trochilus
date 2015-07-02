@@ -60,19 +60,18 @@ void CommManager::Deinit()
 }
 
 
-void http_thread(LPVOID lpParameter)
+void CommManager::HttpPollThread(LPVOID lpParameter)
 {
 	mg_server* server  = (mg_server*)lpParameter;
-	for (;;) {
-		mg_poll_server(server, 1000);
-	}
+	for (;;) mg_poll_server(server, 1000);
 
 };
 
 int CommManager::AddCommService(int port,int name)
 {
 	COMM_MAP::iterator it;
-	int serial;
+	int ret = 0;
+	int serial = 0;
 
 	do 
 	{
@@ -102,66 +101,51 @@ int CommManager::AddCommService(int port,int name)
 
 			itoa(port,szPort,10);
 
-			mg_set_option(server, "listening_port", szPort);
+			if( mg_set_option(server, "listening_port", szPort) != NULL )
+			{
+				mg_destroy_server(&server);
+				break;
+			}
 
-			_beginthread(http_thread,0,server);
-// 			TcpServer* httpServer = new TcpServer;
-// 			httpServer->Init(HttpMsgHandler,this);
-// 
-// 			if (! httpServer->StartListening(port, 0, 30))
-// 			{
-// 				delete httpServer;
-// 				return 0;
-// 			}
-// 
-			info.lpParameter = server;
+			DWORD tid = _beginthread(HttpPollThread,0,server);
+			
+			info.lpParameter1 = server;
+			info.lpParameter2 = (LPVOID)tid;
 			info.nCommName = COMMNAME_HTTP;
 
 			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
 
-			break;
-		}
-	case COMMNAME_DNS:
-		{
-			UdpServer* DnsServer = new UdpServer;
-			DnsServer->Init(UdpMsgHandler,this);
-
-			if (! DnsServer->Start(port))
-			{
-				delete DnsServer;
-				return 0;
-			}
-
-			info.lpParameter = DnsServer;
-			info.nCommName = COMMNAME_DNS;
-
-			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
+			ret = serial;
 
 			break;
 		}
+// 	case COMMNAME_DNS:
+// 		{
+// 			UdpServer* DnsServer = new UdpServer;
+// 			DnsServer->Init(UdpMsgHandler,this);
+// 
+// 			if (! DnsServer->Start(port))
+// 			{
+// 				delete DnsServer;
+// 				return 0;
+// 			}
+// 
+// 			info.lpParameter = DnsServer;
+// 			info.nCommName = COMMNAME_DNS;
+// 
+// 			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
+// 
+// 			break;
+// 		}
 	case COMMNAME_TCP:
 		{
-			TcpServer* tcpServer = new TcpServer;
-			tcpServer->Init(TcpMsgHandler,this);
-
-			if (! tcpServer->StartListening(port, 0, 30))
-			{
-				delete tcpServer;
-				return 0;
-			}
-
-			info.lpParameter = tcpServer;
-			info.nCommName = COMMNAME_TCP;
-
-			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
-
 			break;
 		}
 	default:
-		return 0;
+		return ret;
 	}
 
-	return serial;
+	return ret;
 }
 
 BOOL CommManager::DeleteCommService(int serialid)
@@ -176,26 +160,19 @@ BOOL CommManager::DeleteCommService(int serialid)
 		{
 		case COMMNAME_HTTP:
 			{
-				mg_destroy_server((mg_server**)&info.lpParameter);
-				break;
-			}
-		case COMMNAME_DNS:
-			{
-				UdpServer* dnsServer = (UdpServer*)info.lpParameter;
-				dnsServer->Stop();
+				TerminateThread(info.lpParameter2,0);
+				mg_destroy_server((mg_server**)&info.lpParameter1);
 				break;
 			}
 		case COMMNAME_TCP:
 			{
-				TcpServer* tcpServer = (TcpServer*)info.lpParameter;
-				tcpServer->Stop();
 				break;
 			}
 		default:
 			bRet = FALSE;
 			break;
 		}
-		delete it->second.lpParameter;
+		delete it->second.lpParameter1;
 		return TRUE;
 	}
 	else bRet = FALSE;
@@ -620,182 +597,10 @@ void CommManager::UpdateHeartbeat( LPCTSTR clientid, SOCKADDR_IN addr )
 	m_mapSection.Leave();
 }
 
-void CommManager::UdpMsgHandler( SOCKADDR_IN addr, SOCKET listenSocket, const LPBYTE pData, DWORD dwDataSize, LPVOID lpParameter )
-{
-	if (NULL == pData) return;
-
-	CommManager* pMgr = (CommManager*) lpParameter;
-	pMgr->UdpMsgHandlerProc(addr, listenSocket, pData, dwDataSize);
-}
-
-void CommManager::UdpMsgHandlerProc( SOCKADDR_IN addr, SOCKET listenSocket, const LPBYTE pData, DWORD dwDataSize )
-{
-	LPBYTE pMsgData = NULL;
-	DWORD dwMsgDataSize = CDnsResolver::ParseQueryPacket(pData, dwDataSize, &pMsgData);
-	BOOL bValidData = FALSE;
-	ByteBuffer replyBuffer;
-	BOOL bHasReply = HandleMessageAndReply(addr, pMsgData, dwMsgDataSize, COMMNAME_DNS, bValidData, DNS_COMM_REPLY_MAXSIZE, replyBuffer);
-	CDnsResolver::FreePacketBuffer(pMsgData);
-	if (bHasReply)
-	{
-		LPBYTE pBuffer = NULL;
-		UINT uLen = 0;
-		uLen = CDnsResolver::BuildResponsePacket(pData, dwDataSize, inet_addr("202.106.0.20"), replyBuffer, replyBuffer.Size(), &pBuffer);
-		::sendto(listenSocket, (char*)pBuffer, uLen, 0, (SOCKADDR*)&addr, sizeof(addr));
-		CDnsResolver::FreePacketBuffer(pBuffer);
-	}
-}
-
-BOOL CommManager::ParseTcpPacket(SOCKET sSocket,LPBYTE pData,int nSize,LPBYTE* outData,int& outSize)
-{
-	TCP_PACKET packet;
-
-	TcpPacketMap::iterator it = m_tcpPacketMap.find(sSocket);
-
-	//新的包头开始
-	if (it == m_tcpPacketMap.end())
-	{
-		//判断是否符合协议
-		if (*((UINT*)pData) == TCP_FLAG)
-		{
-			packet.header = *((TCP_HEADER*)pData);
-			packet.buffer = (LPBYTE)malloc(packet.header.nSize);
-			packet.nCurSize = nSize - sizeof(TCP_HEADER);
-			memcpy(packet.buffer,pData + sizeof(TCP_HEADER),nSize - sizeof(TCP_HEADER));
-		}
-		else
-		{
-			return FALSE;
-		}
-	}
-	else
-	{
-		packet = m_tcpPacketMap[sSocket];
-		packet.buffer = (PBYTE)realloc(packet.buffer,packet.nCurSize+nSize);
-		memcpy(packet.buffer + packet.nCurSize,pData,nSize);
-		packet.nCurSize += nSize;
-	}
-	
-	m_tcpPacketMap[sSocket] = packet;
-
-	//判断是否接收完成
-
-	if (packet.nCurSize == packet.header.nSize)
-	{
-		outSize = packet.header.nSize;
-		*outData = packet.buffer;
-		return TRUE;
-	}
-
-	return FALSE;
-}
-void CommManager::FreeTcpPacket(SOCKET s)
-{
-	TcpPacketMap::iterator it = m_tcpPacketMap.find(s);
-
-	if (it != m_tcpPacketMap.end())
-	{
-		free(it->second.buffer);
-		m_tcpPacketMap.erase(it);
-	}
-}
 
 BOOL CommManager::TcpMsgHandler( SOCKADDR_IN addr, SOCKET clientSocket, const LPBYTE pData, DWORD dwDataSize, LPBYTE pSessionData, LPVOID lpParameter )
 {
-	if (NULL == pData) return FALSE;
-
-	CommManager* pMgr = (CommManager*) lpParameter;
-	return pMgr->TcpMsgHandlerProc(addr, clientSocket, pData, dwDataSize, pSessionData);
-}
-
-BOOL CommManager::TcpMsgHandlerProc( SOCKADDR_IN addr, SOCKET clientSocket, const LPBYTE pData, DWORD dwDataSize, LPBYTE pSessionData )
-{
-	BOOL bValidData = FALSE;
-	BOOL bNeedReply = FALSE;
-	BOOL bHasRecv = FALSE;
-
-	ByteBuffer buffer;
-	int nOutSize = 0;
-	LPBYTE pOutBuf = NULL;
-
-	m_csTcpmap.Enter();
-	{
-		bHasRecv = ParseTcpPacket(clientSocket,pData,dwDataSize,&pOutBuf,nOutSize);
-		
-		if (bHasRecv)
-		{
-			ByteBuffer toSendBuffer;
-			bNeedReply = HandleMessageAndReply(addr, pOutBuf, nOutSize, COMMNAME_TCP, bValidData, TCP_COMM_REPLY_MAXSIZE, toSendBuffer);
-
-			FreeTcpPacket(clientSocket);
-
-			if (bNeedReply)
-			{
-				TcpReply(clientSocket,toSendBuffer,toSendBuffer.Size());
-			}
-		}
-	}
-	m_csTcpmap.Leave();
-
 	return TRUE;
-}
-void CommManager::MakeTcpHeader( ByteBuffer& ss,DWORD dwSize ) const
-{
-
-}
-
-void CommManager::TcpReply(SOCKET clientSocket, const LPBYTE pData, DWORD dwSize) const
-{
-	MySocket sock(clientSocket, FALSE);
-
-	TCP_HEADER header;
-	header.flag = TCP_FLAG;
-	header.nSize = dwSize;
-
-	int iSent = sock.SendAll((PBYTE)&header, sizeof(TCP_HEADER));
-	if (!iSent)
-	{
-		errorLog(_T("sent %d. expected:%u"), iSent, sizeof(TCP_HEADER));
-	}
-
-	iSent = sock.SendAll(pData, dwSize);
-	if (!iSent)
-	{
-		errorLog(_T("sent %d. expected:%u"), iSent, dwSize);
-	}
-}
-
-
-DWORD WINAPI CommManager::IcmpListenThread( LPVOID lpParameter )
-{
-	CommManager* pMgr = (CommManager*) lpParameter;
-	pMgr->IcmpListenProc();
-	return 0;
-}
-
-void CommManager::IcmpListenProc()
-{
-	while (m_bListenIcmp)
-	{
-		ULONG srcIP = 0;
-		ULONG destIP = 0;
-		ByteBuffer recvDataBuffer;
-		if (! m_icmpSocket.RecvICMP(srcIP, destIP, recvDataBuffer))
-		{
-			errorLog(_T("recv icmp packet failed"));
-			continue;
-		}
-
-		//检查是否需要进行处理
-		if (m_icmpSocket.GetListenIP() != destIP) return;
-
-		SOCKADDR_IN fromAddr;
-		fromAddr.sin_addr.S_un.S_addr = srcIP;
-		
-		//处理数据
-		CPGUID cpguid;
-		HandleMessage(fromAddr, recvDataBuffer, recvDataBuffer.Size(), COMMNAME_ICMP, cpguid);
-	}
 }
 
 BOOL CommManager::MsgHandler_AvailableComm( MSGID msgid, const CommData& commData, LPVOID lpParameter )

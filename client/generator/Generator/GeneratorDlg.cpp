@@ -144,7 +144,6 @@ void CGeneratorDlg::InitDlgEdit()
 //	m_DefaultComm.AddString(_T("自动检测"));;
 	m_DefaultComm.AddString(_T("TCP"));
 	m_DefaultComm.AddString(_T("HTTP"));
-	m_DefaultComm.AddString(_T("DNS"));
 	
 
 	m_DefaultComm.SetCurSel(config.commType);
@@ -1013,10 +1012,10 @@ void CGeneratorDlg::OnBnClickedRadioPassuac()
 	((CButton*)GetDlgItem(IDC_RADIO_SETUP))->SetCheck(FALSE);
 	((CButton*)GetDlgItem(IDC_RADIO_HIJACK))->SetCheck(FALSE);
 	
-	m_SetupType.SetCurSel(SETUP_TYPE_SPECIFIED);
-	m_SetupType.EnableWindow(FALSE);
+// 	m_SetupType.SetCurSel(SETUP_TYPE_SPECIFIED);
+// 	m_SetupType.EnableWindow(FALSE);
 
-	GetDlgItem(IDC_EDIT_INSTALLPATH)->EnableWindow(FALSE);
+//	GetDlgItem(IDC_EDIT_INSTALLPATH)->EnableWindow(FALSE);
 }
 
 void CGeneratorDlg::OnBnClickedRadioHijack()
@@ -1032,9 +1031,9 @@ void CGeneratorDlg::OnBnClickedRadioSetup()
 {
 	((CButton*)GetDlgItem(IDC_RADIO_PASSUAC))->SetCheck(FALSE);
 	((CButton*)GetDlgItem(IDC_RADIO_HIJACK))->SetCheck(FALSE);
-	GetDlgItem(IDC_EDIT_INSTALLPATH)->EnableWindow(TRUE);
-	m_SetupType.EnableWindow(TRUE);
-	GetDlgItem(IDC_EDIT_INSTALLPATH)->EnableWindow(TRUE);
+// 	GetDlgItem(IDC_EDIT_INSTALLPATH)->EnableWindow(TRUE);
+// 	m_SetupType.EnableWindow(TRUE);
+// 	GetDlgItem(IDC_EDIT_INSTALLPATH)->EnableWindow(TRUE);
 }
 
 //安装方式选择框被改变时触发

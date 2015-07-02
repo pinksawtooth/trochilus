@@ -4,7 +4,9 @@
 #include "BinNames.h"
 #include "common.h"
 
-#pragma comment(lib,"Wtsapi32.lib")
+#pragma comment(lib, "Wtsapi32.lib")
+#pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "ws2_32.lib")
 
 void XorFibonacciCrypt(const LPVOID lpPlain, DWORD dwPlainLen, LPVOID lpEncrypted, UINT factor0, UINT factor1)
 {

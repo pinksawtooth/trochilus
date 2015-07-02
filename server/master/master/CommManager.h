@@ -1,8 +1,6 @@
 #pragma once
 #include <list>
 #include <map>
-#include "tcpserver/TcpServer.h"
-#include "udpserver/UdpServer.h"
 #include "ICMPSocket.h"
 #include "CutupProtocol.h"
 #include "CommCallback.h"
@@ -17,7 +15,9 @@
 
 typedef struct
 {
-	LPVOID lpParameter;
+	LPVOID lpParameter1;
+	LPVOID lpParameter2;
+	LPVOID lpParameter3;
 	int nCommName;
 }COMMINFO;
 
@@ -56,15 +56,6 @@ private:
 	typedef std::list<PCP_PACKET> ToSendPacketQueue;
 	typedef std::map<CPGUID, ToSendPacketQueue> ToSendPacketMap;
 
-	//HTTP黏包数据结构
-	typedef struct
-	{
-		int nCurSize;
-		int nMaxSize;
-		PBYTE buffer;
-	}HTTP_PACKET;
-	typedef std::map<SOCKET, HTTP_PACKET> HttpPacketMap;;
-
 	//心跳数据结构
 	typedef struct
 	{
@@ -98,26 +89,10 @@ private:
 
 	//HTTP消息处理
 	static int HttpMsgHandler(struct mg_connection *conn, enum mg_event ev);
+	static void HttpPollThread(LPVOID lpParameter);
 
-	//UDP消息处理
-	static void UdpMsgHandler(SOCKADDR_IN addr, SOCKET listenSocket, const LPBYTE pData, DWORD dwDataSize, LPVOID lpParameter);
-	void UdpMsgHandlerProc(SOCKADDR_IN addr, SOCKET listenSocket, const LPBYTE pData, DWORD dwDataSize);
-
-	//TCP消息处理
-	void TcpReply(SOCKET clientSocket, const LPBYTE pData, DWORD dwSize) const;
-	void HttpReply(SOCKET clientSocket, const LPBYTE pData, DWORD dwSize) const;
-	void MakeTcpHeader(ByteBuffer& ss,DWORD dwSize) const;
-	
 	static BOOL TcpMsgHandler(SOCKADDR_IN addr, SOCKET clientSocket, const LPBYTE pData, DWORD dwDataSize, LPBYTE pSessionData, LPVOID lpParameter);
-	BOOL TcpMsgHandlerProc(SOCKADDR_IN addr, SOCKET clientSocket, const LPBYTE pData, DWORD dwDataSize, LPBYTE pSessionData);
 
-	BOOL ParseTcpPacket(SOCKET sSocket,LPBYTE pData,int nSize,LPBYTE* outData,int& outSize);
-	void FreeTcpPacket(SOCKET s);
-
-	//ICMP消息处理
-	static DWORD WINAPI IcmpListenThread(LPVOID lpParameter);
-	void IcmpListenProc();
-	BOOL LoadConfig();
 private:
 	ICMPSocket	m_icmpSocket;
 
@@ -131,12 +106,6 @@ private:
 	Thread			m_icmpRecvThread;
 	BOOL			m_bListenIcmp;
 
-	HttpPacketMap	m_httpPacketMap;
-	CriticalSection	m_csHttpmap;
-
-	TcpPacketMap	m_tcpPacketMap;
-	CriticalSection m_csTcpmap;
-	
 	MsgHandlerMap	m_msgHandlerMap;
 	CriticalSection	m_msgHandlerSection;
 

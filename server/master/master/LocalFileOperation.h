@@ -17,7 +17,7 @@ typedef struct
 	tstring clientid;
 	IRCFileOperation* pFO;
 	FnModuleNotifyProc fnProc;
-	LPVOID lpParameter;
+	LPVOID lpParameter1;
 	tstring notify;
 } LIST_DISK_PARAMETER;
 
@@ -28,6 +28,6 @@ typedef struct
 	tstring findstr;
 	IRCFileOperation* pFo;
 	tstring notify;
-	LPVOID lpParameter;
+	LPVOID lpParameter1;
 	BOOL	bForce;
 } LIST_FILE_PARAMETER;

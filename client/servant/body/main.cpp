@@ -31,7 +31,6 @@ SERVANT_API BOOL InitServant(const PCONFIG_INFO pConfigInfo)
 	}
 
 	if (COMMNAME_HTTP == g_ConfigInfo.nDefaultCommType) CommManager::GetInstanceRef().SetDefaultComm(COMMNAME_HTTP);
-	else if (COMMNAME_DNS == g_ConfigInfo.nDefaultCommType) CommManager::GetInstanceRef().SetDefaultComm(COMMNAME_DNS);
 	else if (COMMNAME_TCP == g_ConfigInfo.nDefaultCommType) CommManager::GetInstanceRef().SetDefaultComm(COMMNAME_TCP);
 
 	if (! CommManager::GetInstanceRef().StartMessageWorker(1000 * 30, 10, 1000))

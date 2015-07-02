@@ -133,7 +133,7 @@ static DWORD WINAPI ListFileThread(LPVOID lpParameter)
 
 		int nMsg = pParam->pFo == &g_rfo ? MODULE_MSG_LISTREMOTEFILE : MODULE_MSG_LISTLOCALFILE;
 
-		ClientInfoManager::GetInstanceRef().QueryModuleInfo(pParam->clientid.c_str(),nMsg,(LPVOID)retjson.c_str(),pParam->lpParameter);
+		ClientInfoManager::GetInstanceRef().QueryModuleInfo(pParam->clientid.c_str(),nMsg,(LPVOID)retjson.c_str(),pParam->lpParameter1);
 	}
 
 	delete pParam;
@@ -198,7 +198,7 @@ static DWORD WINAPI ListDiskThread(LPVOID lpParameter)
 
 		int nMsg = pParam->pFO == &g_rfo ? MODULE_MSG_LISTREMOTEFILE : MODULE_MSG_LISTLOCALFILE;
 
-		ClientInfoManager::GetInstanceRef().QueryModuleInfo(pParam->clientid.c_str(),nMsg,(LPVOID)retjson.c_str(),pParam->lpParameter);
+		ClientInfoManager::GetInstanceRef().QueryModuleInfo(pParam->clientid.c_str(),nMsg,(LPVOID)retjson.c_str(),pParam->lpParameter1);
 	}
 
 	delete pParam;
@@ -436,7 +436,7 @@ MASTER2_API void AsynListFiles( LPCTSTR clientid, LPCTSTR findstr,BOOL isClient,
 	pData->pFo = isClient ? (IRCFileOperation*)&g_rfo : (IRCFileOperation*)&g_lfo;
 	pData->clientid = clientid;
 	pData->findstr = findstr;
-	pData->lpParameter = lpParameter;
+	pData->lpParameter1 = lpParameter;
 
 	DWORD dwThreadId;
 	CreateThread(NULL,0,ListFileThread, pData,0, &dwThreadId);
@@ -444,12 +444,12 @@ MASTER2_API void AsynListFiles( LPCTSTR clientid, LPCTSTR findstr,BOOL isClient,
 MASTER2_API void AsynListDisks( LPCWSTR clientid,BOOL isClient, LPVOID lpParameter )
 {
 	LIST_DISK_PARAMETER* pData = new LIST_DISK_PARAMETER;
-	pData->lpParameter = lpParameter;
+	pData->lpParameter1 = lpParameter;
 
 	pData->pFO = isClient ? (IRCFileOperation*)&g_rfo : (IRCFileOperation*)&g_lfo;
 
 	pData->clientid = clientid;
-	pData->lpParameter = lpParameter;
+	pData->lpParameter1 = lpParameter;
 
 	DWORD dwThreadId;
 	CreateThread(NULL,0,ListDiskThread, pData,0, &dwThreadId);

@@ -127,13 +127,9 @@
     <ClInclude Include="..\..\..\base\include\mongoose\mongoose.h" />
     <ClInclude Include="..\..\..\base\include\ods.h" />
     <ClInclude Include="..\..\..\base\include\socket\MySocket.h" />
-    <ClInclude Include="..\..\..\base\include\tcpserver\TcpServer.h" />
-    <ClInclude Include="..\..\..\base\include\tcpserver\TcpServerData.h" />
     <ClInclude Include="..\..\..\base\include\thread\RepeatTask.h" />
     <ClInclude Include="..\..\..\base\include\thread\ThreadArray.h" />
     <ClInclude Include="..\..\..\base\include\tstring.h" />
-    <ClInclude Include="..\..\..\base\include\udpserver\UdpServer.h" />
-    <ClInclude Include="..\..\..\base\include\udpserver\UdpServerData.h" />
     <ClInclude Include="..\..\..\common\BinNames.h" />
     <ClInclude Include="..\..\..\common\CommData.h" />
     <ClInclude Include="..\..\..\common\CommDataUtils.h" />
@@ -180,11 +176,9 @@
     <ClCompile Include="..\..\..\base\include\mongoose\mongoose.cpp" />
     <ClCompile Include="..\..\..\base\include\ods.cpp" />
     <ClCompile Include="..\..\..\base\include\socket\MySocket.cpp" />
-    <ClCompile Include="..\..\..\base\include\tcpserver\TcpServer.cpp" />
     <ClCompile Include="..\..\..\base\include\thread\RepeatTask.cpp" />
     <ClCompile Include="..\..\..\base\include\thread\ThreadArray.cpp" />
     <ClCompile Include="..\..\..\base\include\tstring.cpp" />
-    <ClCompile Include="..\..\..\base\include\udpserver\UdpServer.cpp" />
     <ClCompile Include="..\..\..\common\CommData.cpp" />
     <ClCompile Include="..\..\..\common\CommDataUtils.cpp" />
     <ClCompile Include="..\..\..\common\CutupProtocol.cpp" />
