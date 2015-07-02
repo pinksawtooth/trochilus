@@ -5,6 +5,7 @@
 #include "Trochilus.h"
 #include "ListenDlg.h"
 #include "afxdialogex.h"
+#include "CommNames.h"
 
 
 // CListenDlg ¶Ô»°¿ò
@@ -41,10 +42,10 @@ void CListenDlg::InitView()
 	m_Imagelist.Add(AfxGetApp()->LoadIcon(IDI_ICON_LIS));
 	m_listenList.SetImageList(&m_Imagelist);
 
-// 	m_protoList.InsertString(0,_T("TCP"));
-// 	m_protoList.SetItemData(0,2);
 	m_protoList.InsertString(0,_T("HTTP"));
-	m_protoList.SetItemData(0,4);
+	m_protoList.SetItemData(0,COMMNAME_HTTP);
+	m_protoList.InsertString(1,_T("TCP"));
+	m_protoList.SetItemData(1,COMMNAME_TCP);
 // 	m_protoList.InsertString(2,_T("DNS"));
 // 	m_protoList.SetItemData(2,5);
 	m_protoList.SetCurSel(0);
@@ -98,22 +99,22 @@ void CListenDlg::InitResize()
 
 void CListenDlg::OnBnClickedButtonStart()
 {
-	int nSelProto = m_protoList.GetCurSel();
+	int sel = m_protoList.GetCurSel();
 
-	int nPort = GetDlgItemInt(IDC_EDIT_PORT);
+	int port = GetDlgItemInt(IDC_EDIT_PORT);
 
 	int nCount = m_listenList.GetItemCount();
-
+	
 	CString strPort;
 
-	strPort.Format(_T("%d"),nPort);
+	strPort.Format(_T("%d"),port);
 
 	CString strProtocol;
-	if (nSelProto == 0)
+	if (sel == 0)
 	{
 		strProtocol = _T("HTTP");
 	}
-	else if (nSelProto == 1)
+	else if (sel == 1)
 	{
 		strProtocol = _T("TCP");
 	}
@@ -121,7 +122,7 @@ void CListenDlg::OnBnClickedButtonStart()
 	m_listenList.InsertItem(nCount,strProtocol,0);
 	m_listenList.SetItemText(nCount,1,strPort);
 
-	int serial = AddCommService(nPort,m_protoList.GetItemData(nSelProto));
+	int serial = AddCommService(port,m_protoList.GetItemData(sel));
 
 	if (serial)
 	{

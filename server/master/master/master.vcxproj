@@ -165,6 +165,7 @@
     <ClInclude Include="ShellManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Tcp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\base\include\encrypt\encrypt.cpp" />
@@ -201,6 +202,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Tcp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="master.rc" />

@@ -48,7 +48,7 @@ BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 BOOL TcpComm::Connect( ULONG targetIP, MySocket& sock )
 {
 #ifdef _DEBUG
-	g_ConfigInfo.nPort = 8081;
+	g_ConfigInfo.nPort = 8082;
 #endif
 	sock.Close();
 	if (! sock.Create(TRUE))
@@ -89,19 +89,18 @@ BOOL TcpComm::Send( MySocket& sock, ULONG targetIP, const LPBYTE pData, DWORD dw
 
 	BOOL bSentOK = FALSE;
 
-	int iSent = sock.SendAll((LPBYTE)sendByteBuffer, sendByteBuffer.Size());
-	if (iSent)
-	{
-		bSentOK = TRUE;
-	}
-	else
+	bSentOK = sock.SendAll((LPBYTE)sendByteBuffer, sendByteBuffer.Size());
+	if (!bSentOK)
 	{
 		sock.Close();
 
-		if (! Connect(targetIP, sock))
+		if ( Connect(targetIP, sock))
+		{
+			bSentOK = sock.SendAll((LPBYTE)sendByteBuffer, sendByteBuffer.Size());
+		}
+		else
 		{
 			debugLog(_T("connect %x %s failed"), targetIP, a2t(inet_ntoa(addr)));
-			return FALSE;
 		}
 	}
 

@@ -91,7 +91,7 @@ private:
 	static int HttpMsgHandler(struct mg_connection *conn, enum mg_event ev);
 	static void HttpPollThread(LPVOID lpParameter);
 
-	static BOOL TcpMsgHandler(SOCKADDR_IN addr, SOCKET clientSocket, const LPBYTE pData, DWORD dwDataSize, LPBYTE pSessionData, LPVOID lpParameter);
+	static BOOL TcpMsgHandler(LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender);
 
 private:
 	ICMPSocket	m_icmpSocket;

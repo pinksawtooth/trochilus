@@ -6,6 +6,7 @@
 #include "MessageDefines.h"
 #include "common.h"
 #include "CommManager.h"
+#include "Tcp.h"
 #include "DnsResolver.h"
 #include "mongoose/mongoose.h"
 
@@ -139,6 +140,16 @@ int CommManager::AddCommService(int port,int name)
 // 		}
 	case COMMNAME_TCP:
 		{
+			CTcp *tcp = new CTcp;
+			tcp->Init();
+			tcp->Start(port,TcpMsgHandler);
+
+			info.nCommName = COMMNAME_TCP;
+
+			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
+
+			ret = serial;
+
 			break;
 		}
 	default:
@@ -411,7 +422,12 @@ void CommManager::HandleMsgByMsgHandler( MSGID msgid, const CommData& commData )
 		}
 	}
 }
+BOOL CommManager::TcpMsgHandler( LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender )
+{
+	BOOL bValidData = FALSE;
 
+	return CommManager::GetInstanceRef().HandleMessageAndReply(sin,data , size, COMMNAME_TCP, bValidData, TCP_COMM_REPLY_MAXSIZE, toSender);
+}
 int CommManager::HttpMsgHandler( struct mg_connection *conn, enum mg_event ev )
 {
 	BOOL bValidData = FALSE;
@@ -598,10 +614,7 @@ void CommManager::UpdateHeartbeat( LPCTSTR clientid, SOCKADDR_IN addr )
 }
 
 
-BOOL CommManager::TcpMsgHandler( SOCKADDR_IN addr, SOCKET clientSocket, const LPBYTE pData, DWORD dwDataSize, LPBYTE pSessionData, LPVOID lpParameter )
-{
-	return TRUE;
-}
+
 
 BOOL CommManager::MsgHandler_AvailableComm( MSGID msgid, const CommData& commData, LPVOID lpParameter )
 {

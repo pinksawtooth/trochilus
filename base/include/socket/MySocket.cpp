@@ -13,7 +13,6 @@ MySocket::MySocket()
 
 MySocket::~MySocket()
 {
-	Close();
 }
 
 MySocket::MySocket(SOCKET socket, BOOL bOwn)

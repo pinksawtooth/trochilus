@@ -297,6 +297,9 @@
     <ClInclude Include="..\..\..\base\include\mongoose\mongoose.h">
       <Filter>include\mongoose</Filter>
     </ClInclude>
+    <ClInclude Include="Tcp.h">
+      <Filter>comm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -391,6 +394,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\base\include\mongoose\mongoose.cpp">
       <Filter>include\mongoose</Filter>
+    </ClCompile>
+    <ClCompile Include="Tcp.cpp">
+      <Filter>comm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
