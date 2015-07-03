@@ -51,7 +51,7 @@ private:
 		CString serviceDisplayName;
 		CString serviceDescription;
 		CString serviceInstallpath;
-		int		httpPort;
+		int		port;
 		int		commType;
 		int		setupType;
 		int		connectTryIntervalM;

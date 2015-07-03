@@ -226,7 +226,7 @@ BOOL CommManager::StartMessageWorker( ULONG testIntervalMS, DWORD dwSendInterval
 	m_bWorking = TRUE;
 	m_dwMsgIntervalMS = dwSendIntervalMS;
 
-	if (! IsCommAvailable(COMMNAME_DEFAULT)) SendCommTestMessages();
+	if (! IsCommAvailable(COMMNAME_DEFAULT))/* SendCommTestMessages()*/;
 
 	return m_messageSenderThread.Start(MessageSender, this);
 }

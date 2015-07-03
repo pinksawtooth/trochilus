@@ -47,9 +47,6 @@ BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 BOOL TcpComm::Connect( ULONG targetIP, MySocket& sock )
 {
-#ifdef _DEBUG
-	g_ConfigInfo.nPort = 8082;
-#endif
 	sock.Close();
 	if (! sock.Create(TRUE))
 	{

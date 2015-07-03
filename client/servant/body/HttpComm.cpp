@@ -41,10 +41,6 @@ BOOL HttpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSend
 
 BOOL HttpComm::Connect( ULONG targetIP )
 {
-#ifdef _DEBUG
-	g_ConfigInfo.nPort = 8082;
-#endif
-
 	char szPort[255] = {0};
 
 	sprintf_s(szPort,"%d",g_ConfigInfo.nPort);

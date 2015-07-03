@@ -12,9 +12,7 @@
 
 SERVANT_API BOOL InitServant(const PCONFIG_INFO pConfigInfo)
 {
-	debugLog(_T("init servant. server : %s"), a2t(pConfigInfo->szAddr));
-
-	debugLog(a2t(pConfigInfo->szAddr));
+	debugLog(_T("init servant. server : %s:%d"), a2t(pConfigInfo->szAddr),pConfigInfo->nPort);
 
 	g_ConfigInfo = *pConfigInfo;
 
@@ -30,8 +28,12 @@ SERVANT_API BOOL InitServant(const PCONFIG_INFO pConfigInfo)
 		return FALSE;
 	}
 
-	if (COMMNAME_HTTP == g_ConfigInfo.nDefaultCommType) CommManager::GetInstanceRef().SetDefaultComm(COMMNAME_HTTP);
-	else if (COMMNAME_TCP == g_ConfigInfo.nDefaultCommType) CommManager::GetInstanceRef().SetDefaultComm(COMMNAME_TCP);
+	CommManager::GetInstanceRef().SetDefaultComm((COMM_NAME)g_ConfigInfo.nDefaultCommType);
+
+	tstring proto;
+	CommManager::GetInstanceRef().Commname2Str((COMM_NAME)g_ConfigInfo.nDefaultCommType,proto);
+
+	debugLog(_T("protocol : %s[%d]"),proto.c_str(),g_ConfigInfo.nDefaultCommType);
 
 	if (! CommManager::GetInstanceRef().StartMessageWorker(1000 * 30, 10, 1000))
 	{

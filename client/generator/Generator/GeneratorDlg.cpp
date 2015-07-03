@@ -8,6 +8,8 @@
 #include "afxdialogex.h"
 #include <shellapi.h>
 #include <atlenc.h>
+#include "CommNames.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -131,7 +133,7 @@ void CGeneratorDlg::InitDlgEdit()
 //	SetDlgItemText(IDC_EDIT_SERVICEDEC, config.serviceDescription);
 //	SetDlgItemText(IDC_EDIT_INSTALLPATH, config.serviceInstallpath);
 	SetDlgItemText(IDC_EDIT_GROUP, _T("Default"));
-	SetDlgItemInt(IDC_EDIT_HTTPPORT, config.httpPort);
+	SetDlgItemInt(IDC_EDIT_PORT, config.port);
 //	SetDlgItemInt(IDC_EDIT_DNSPORT, 53);
 
 	if (config.packetType == PACKET_TYPE_PASSUAC)
@@ -142,8 +144,11 @@ void CGeneratorDlg::InitDlgEdit()
 	}
 
 //	m_DefaultComm.AddString(_T("自动检测"));;
-	m_DefaultComm.AddString(_T("TCP"));
-	m_DefaultComm.AddString(_T("HTTP"));
+
+	m_DefaultComm.InsertString(0,_T("HTTP"));
+	m_DefaultComm.SetItemData(0,COMMNAME_HTTP);
+	m_DefaultComm.InsertString(1,_T("TCP"));
+	m_DefaultComm.SetItemData(1,COMMNAME_TCP);
 	
 
 	m_DefaultComm.SetCurSel(config.commType);
@@ -912,20 +917,8 @@ void CGeneratorDlg::OnBnClickedButtonBingo()
 
 	//得到通信方式
 	int nSel = m_DefaultComm.GetCurSel();
-
-	if (nSel == 0)
-	{
-		Config_Info.nDefaultCommType = COMMNAME_DNS;
-	}
-	else if(nSel == 1)
-	{
-		Config_Info.nDefaultCommType = COMMNAME_HTTP;
-	}
-	else if(nSel == 2)
-	{
-		Config_Info.nDefaultCommType = COMMNAME_TCP;
-	}
-	generateConfig.commType = nSel;
+	Config_Info.nDefaultCommType = m_DefaultComm.GetItemData(nSel);
+	generateConfig.commType = m_DefaultComm.GetCurSel();
 
 	//得到尝试连接间隔
 	Config_Info.nTryConnectIntervalM = GetDlgItemInt(IDC_EDIT_TRY_INTERVALM);
@@ -953,9 +946,9 @@ void CGeneratorDlg::OnBnClickedButtonBingo()
 
 	Config_Info.nProxyPort = GetDlgItemInt(IDC_EDIT_PROXYPORT);
 
-	//得到HTTP端口
-	Config_Info.nPort = GetDlgItemInt(IDC_EDIT_HTTPPORT);
-	generateConfig.httpPort = GetDlgItemInt(IDC_EDIT_HTTPPORT);
+	//得到端口
+	Config_Info.nPort = GetDlgItemInt(IDC_EDIT_PORT);
+	generateConfig.port = GetDlgItemInt(IDC_EDIT_PORT);
 
 	BOOL bCarrier = ((CButton*)GetDlgItem(IDC_RADIO_CARRIER))->GetCheck();
 	BOOL bSetup = ((CButton*)GetDlgItem(IDC_RADIO_SETUP))->GetCheck();
@@ -1085,7 +1078,7 @@ void CGeneratorDlg::SaveGeneratorConfig( const GENERATOR_CONFIG& config )
 	WRITE_INT_CONFIG(DOWN_SVT_OFFSETS, config.downSvtOffsetS);
 	WRITE_INT_CONFIG(DOWN_SVT_INTERVALS, config.downSvtIntervalS);
 	WRITE_INT_CONFIG(PACKET_TYPE, config.packetType);
-	WRITE_INT_CONFIG(HTTP_PORT, config.httpPort);
+	WRITE_INT_CONFIG(HTTP_PORT, config.port);
 	WRITE_INT_CONFIG(COMM_TYPE, config.commType);
 }
 
@@ -1120,27 +1113,27 @@ void CGeneratorDlg::LoadGeneratorConfig( GENERATOR_CONFIG& config )
 	READ_INT_CONFIG(DOWN_SVT_OFFSETS, _T("30"), config.downSvtOffsetS);
 	READ_INT_CONFIG(DOWN_SVT_INTERVALS, _T("1800"), config.downSvtIntervalS);
 	READ_INT_CONFIG(PACKET_TYPE, _T("0"), config.packetType);
-	READ_INT_CONFIG(HTTP_PORT, _T("8081"), config.httpPort);
+	READ_INT_CONFIG(HTTP_PORT, _T("8081"), config.port);
 	READ_INT_CONFIG(COMM_TYPE, _T("0"), config.commType);
 }
 
 
 void CGeneratorDlg::OnCbnSelendokComboComm()
 {
-	int nSel = m_DefaultComm.GetCurSel();
-
-	if (nSel == 1)
-	{
-		((CWnd*)GetDlgItem(IDC_EDIT_HTTPPORT))->EnableWindow(TRUE);
-	}
-	else if(nSel == 2)
-	{
-		((CWnd*)GetDlgItem(IDC_EDIT_HTTPPORT))->EnableWindow(TRUE);
-	}
-	else
-	{
-		((CWnd*)GetDlgItem(IDC_EDIT_HTTPPORT))->EnableWindow(FALSE);
-	}
+// 	int nSel = m_DefaultComm.GetCurSel();
+// 
+// 	if (nSel == 1)
+// 	{
+// 		((CWnd*)GetDlgItem(IDC_EDIT_HTTPPORT))->EnableWindow(TRUE);
+// 	}
+// 	else if(nSel == 2)
+// 	{
+// 		((CWnd*)GetDlgItem(IDC_EDIT_HTTPPORT))->EnableWindow(TRUE);
+// 	}
+// 	else
+// 	{
+// 		((CWnd*)GetDlgItem(IDC_EDIT_HTTPPORT))->EnableWindow(FALSE);
+// 	}
 	return ;
 	// TODO: 在此添加控件通知处理程序代码
 }
