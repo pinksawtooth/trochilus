@@ -6,6 +6,8 @@
 
 typedef BOOL (*tcpHandler)(LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender);
 
+typedef std::vector<SOCKET> VecSocket;
+
 typedef struct
 {
 	SOCKET s;
@@ -23,13 +25,20 @@ public:
 
 	void Init();
 	bool Start(int port , tcpHandler handler);
-	bool Stop();
+	void Stop();
 
 private:
 
-	static void ListenProc(LPVOID lpParameter);
+	CriticalSection m_cs;
+	VecSocket m_vecSock;
+
+
+	static void Listen(LPVOID lpParameter);
+	void ListenProc(ARGV_LIST *argv);
 
 	static void Worker(LPVOID lpParameter);
 
+
+	MySocket m_sock;
 };
 

@@ -18,6 +18,23 @@ void CTcp::Init()
 	WSAStartup(MAKEWORD(2,2),&data);
 }
 
+void CTcp::Stop()
+{
+	m_sock.Close();
+
+	m_cs.Enter();
+
+	VecSocket::iterator it = m_vecSock.begin();
+
+	for (; it != m_vecSock.end(); it++)
+	{
+		::closesocket(*it);
+	}
+
+	m_cs.Leave();
+
+}
+
 bool CTcp::Start(int port , tcpHandler handler)
 {
 	bool ret = FALSE;
@@ -28,6 +45,8 @@ bool CTcp::Start(int port , tcpHandler handler)
 
 	if (socket.Bind(port))
 	{
+		m_sock = socket;
+
 		ARGV_LIST* argv = new ARGV_LIST;
 
 		argv->handler = handler;
@@ -35,7 +54,7 @@ bool CTcp::Start(int port , tcpHandler handler)
 		argv->lpParameter = this;
 
 		listen(socket,25);
-		_beginthread(ListenProc,0,argv);
+		_beginthread(Listen,0,argv);
 
 		ret = TRUE;
 	}
@@ -87,13 +106,13 @@ void CTcp::Worker(LPVOID lpParameter)
 		}
 	}
 
+	socket.Close();
+
 	delete lpParameter;
 }
 
-void CTcp::ListenProc(LPVOID lpParameter)
+void CTcp::ListenProc( ARGV_LIST *argv )
 {
-	ARGV_LIST *argv = (ARGV_LIST*)lpParameter;
-
 	MySocket socket(argv->s,TRUE);
 
 	SOCKADDR_IN sin;
@@ -102,6 +121,10 @@ void CTcp::ListenProc(LPVOID lpParameter)
 
 	while(socket.Accept(sin,acc))
 	{
+		m_cs.Enter();
+		m_vecSock.push_back(acc);
+		m_cs.Leave();
+
 		ARGV_LIST * client_argv = new ARGV_LIST;
 
 		client_argv->handler = argv->handler;
@@ -112,5 +135,14 @@ void CTcp::ListenProc(LPVOID lpParameter)
 		_beginthread(Worker,0,client_argv);
 	}
 
-	delete lpParameter;
+	socket.Close();
+	delete argv;
+}
+
+void CTcp::Listen(LPVOID lpParameter)
+{
+	ARGV_LIST *argv = (ARGV_LIST*)lpParameter;
+	CTcp* tcp = (CTcp*)argv->lpParameter;
+
+	return tcp->ListenProc((ARGV_LIST*)lpParameter);
 }

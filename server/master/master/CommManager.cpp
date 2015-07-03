@@ -142,9 +142,14 @@ int CommManager::AddCommService(int port,int name)
 		{
 			CTcp *tcp = new CTcp;
 			tcp->Init();
-			tcp->Start(port,TcpMsgHandler);
+			if (!tcp->Start(port,TcpMsgHandler))
+			{
+				delete tcp;
+				break;
+			}
 
 			info.nCommName = COMMNAME_TCP;
+			info.lpParameter1 = tcp;
 
 			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
 
@@ -173,17 +178,25 @@ BOOL CommManager::DeleteCommService(int serialid)
 			{
 				TerminateThread(info.lpParameter2,0);
 				mg_destroy_server((mg_server**)&info.lpParameter1);
+
+				m_commMap.erase(it);
+
 				break;
 			}
 		case COMMNAME_TCP:
 			{
+				CTcp *tcp = (CTcp *)info.lpParameter1;
+				tcp->Stop();
+				delete tcp;
+
+				m_commMap.erase(it);
+
 				break;
 			}
 		default:
 			bRet = FALSE;
 			break;
 		}
-		delete it->second.lpParameter1;
 		return TRUE;
 	}
 	else bRet = FALSE;
