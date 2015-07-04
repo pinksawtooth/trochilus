@@ -93,12 +93,9 @@ void CTcp::Worker(LPVOID lpParameter)
 					socket.SendAll(&header,sizeof(TCP_HEADER));
 					socket.SendAll(toSender,toSender.Size());
 				}
-				free(lpData);
+				
 			}
-			else
-			{
-				free(lpData);
-			}
+			free(lpData);
 		}
 		else
 		{

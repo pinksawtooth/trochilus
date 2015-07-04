@@ -33,7 +33,7 @@ private:
 	TransStopList m_stopList;
 
 	CriticalSection m_csProcessMap;
-	typedef std::map<CString,TransStatusVector> ProcessMap;
+	typedef std::map<CString,TransStatusVector*> ProcessMap;
 	ProcessMap m_processMap;
 };
 

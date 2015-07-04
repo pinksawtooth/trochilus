@@ -84,7 +84,10 @@ MASTER2_API BOOL StopFileTransfer(LPCTSTR clientid,LPCTSTR serverpath);
 
 MASTER2_API BOOL StartFileTransfer(LPCTSTR clientid,LPCTSTR serverpath);
 
+
+typedef void (*FnQueryTrans)(LPCTSTR clientid,TRANS_STATUS status,LPVOID lpParameter);
 MASTER2_API void QueryFileTransferStatus(LPCTSTR clientid,TransferInfoList* list);
+MASTER2_API void QueryTransferStatus(LPCTSTR clientid,FnQueryTrans fn,LPVOID lpParameter);
 
 MASTER2_API void DeleteRemoteFile(LPCTSTR clientid,LPCTSTR clientpath);
 
@@ -102,9 +105,6 @@ MASTER2_API void AsynListDisks( LPCWSTR clientid,BOOL isClient, LPVOID lpParamet
 
 //启动Master
 MASTER2_API BOOL StartMasterWorking();
-
-//查询携带文件的消息传输情况
-MASTER2_API void QueryFileTransferInfo(LPCTSTR clientid, RcMsgInfoList* pMsginfoList);
 
 //根据消息序列号，查询客户端的应答消息
 MASTER2_API BOOL GetReplyByMsgserialid(LPCTSTR clientid, MSGSERIALID sendMsgserialid, ByteList* pByteList);

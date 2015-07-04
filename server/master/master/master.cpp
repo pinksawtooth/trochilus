@@ -615,29 +615,6 @@ MASTER2_API BOOL QuerySendingMessageStatus( LPCTSTR clientid, MSGSERIALID sendMs
 	return CommManager::GetInstanceRef().QuerySendStatus(clientid, sendMsgserialid, *pdwSentBytes, *pdwTotalBytes);
 }
 
-MASTER2_API void QueryFileTransferInfo( LPCTSTR clientid, RcMsgInfoList* pMsginfoList )
-{
-	if (NULL == clientid || NULL == pMsginfoList) return;
-
-	MessageInfoList infoList;
-	MessageRecorder::GetInstanceRef().QueryMsg(clientid, infoList);
-
-	if (infoList.size() > 0)
-	{
-		pMsginfoList->Alloc(infoList.size());
-		MessageInfoList::iterator iter = infoList.begin();
-		for (int i = 0; iter != infoList.end(); iter++, i++)
-		{
-			MESSAGE_INFO& info = *iter;
-			RC_MSG_INFO& rcinfo = pMsginfoList->At(i);
-
-			rcinfo.bToClient = info.bToClient;
-			rcinfo.serial = info.serial;
-			_tcsncpy_s(rcinfo.desc, sizeof(rcinfo.desc) / sizeof(TCHAR), (LPCTSTR)info.desc, info.desc.GetLength());
-		}
-	}
-}
-
 
 MASTER2_API void QueryModuleInstallStatus( LPCTSTR clientid, LPCTSTR moduleName, MODULE_INST_STATUS* pStatus, UINT* pProgress )
 {
@@ -696,6 +673,23 @@ MASTER2_API void QueryFileTransferStatus( LPCTSTR clientid,TransferInfoList* lis
 	}
 
 	
+}
+
+MASTER2_API void QueryTransferStatus(LPCTSTR clientid,FnQueryTrans fn,LPVOID lpParameter)
+{
+	TransStatusVector vec;
+	CFileTransfer::GetInstanceRef().GetTransferList(clientid,&vec);
+
+
+	TransStatusVector::iterator iter = vec.begin();
+	for (int i = 0; iter != vec.end(); iter++, i++)
+	{
+		if (fn)
+		{
+			fn(clientid,*iter,lpParameter);
+		}
+	}
+
 }
 
 MASTER2_API BOOL StartFileTransfer(LPCTSTR clientid,LPCTSTR serverpath)

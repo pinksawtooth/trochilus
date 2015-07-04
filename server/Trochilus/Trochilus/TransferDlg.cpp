@@ -66,53 +66,58 @@ int GetItemIdByString(CListCtrl& list,LPCTSTR str,int nSubItem)
 	}
 	return 0xFFFFFFFF;
 }
+
+void CTransferDlg::ModifyStatus(LPCTSTR clientid,TRANS_STATUS status,LPVOID lpParameter)
+{
+	CTransferDlg* dlg = (CTransferDlg*)lpParameter;
+
+	dlg->ModifyStatusProc(clientid,status,lpParameter);
+}
+
+void CTransferDlg::ModifyStatusProc(LPCTSTR clientid,TRANS_STATUS status,LPVOID lpParameter)
+{
+	TRANS_STATUS& info = status;
+
+	DWORD dwDoneBytes = info.nCurPos;
+	DWORD dwTotalBytes = info.nTotal;
+
+
+	CString donebytes;
+	donebytes.Format(_T("%u"), dwDoneBytes);
+	CString totalbytes;
+	totalbytes.Format(_T("%u"), dwTotalBytes);
+
+	float fProcess = ((float)dwDoneBytes)/((float)dwTotalBytes);
+	int nProcess = (int)(fProcess * (float)100);
+
+	CString process;
+	process.Format(_T("%d / %d"),dwDoneBytes,dwTotalBytes);
+
+	CString sstatus = !info.isDown ? _T("Uploading") : _T("Downloading");
+	CString progress;
+	progress.Format(_T("%d%%"),nProcess);
+	if (nProcess == 100)
+	{
+		sstatus = _T("Finish");
+	}
+
+	int nTmp = GetItemIdByString(m_transList,info.strSPath,0);
+
+	if (nTmp == 0xffffffff)
+	{
+		nTmp = 0;
+		int nImage = m_ImageList.Add(CIconLoader::GetInstanceRef().LoadIcon(info.strSPath));
+		m_transList.InsertItem(nTmp,info.strSPath,nImage);
+		m_transList.SetItemText(nTmp,1,info.strCPath);
+	}
+	m_transList.SetItemText(nTmp,2,process);
+	m_transList.SetItemText(nTmp,3,progress);
+	m_transList.SetItemText(nTmp,4,sstatus);
+}
+
 DWORD CTransferDlg::CheckTaskListProc()
 {
-	TransferInfoList infoList;
-
-	QueryFileTransferStatus(m_clientid, &infoList);
-
-	for (int i = 0; i <  infoList.Count(); i++)
-	{
-		TRANS_STATUS& info = infoList.At(i);
-
-		DWORD dwDoneBytes = info.nCurPos;
-		DWORD dwTotalBytes = info.nTotal;
-
-
-		CString donebytes;
-		donebytes.Format(_T("%u"), dwDoneBytes);
-		CString totalbytes;
-		totalbytes.Format(_T("%u"), dwTotalBytes);
-
-		float fProcess = ((float)dwDoneBytes)/((float)dwTotalBytes);
-		int nProcess = (int)(fProcess * (float)100);
-
-		CString process;
-		process.Format(_T("%d / %d"),dwDoneBytes,dwTotalBytes);
-
-		CString status = !info.isDown ? _T("Uploading") : _T("Downloading");
-		CString progress;
-		progress.Format(_T("%d%%"),nProcess);
-		if (nProcess == 100)
-		{
-			status = _T("Finish");
-		}
-
-		int nTmp = GetItemIdByString(m_transList,info.strSPath,0);
-
-		if (nTmp == 0xffffffff)
-		{
-			nTmp = 0;
-			int nImage = m_ImageList.Add(CIconLoader::GetInstanceRef().LoadIcon(info.strSPath));
-			m_transList.InsertItem(nTmp,info.strSPath,nImage);
-			m_transList.SetItemText(nTmp,1,info.strCPath);
-		}
-		m_transList.SetItemText(nTmp,2,process);
-		m_transList.SetItemText(nTmp,3,progress);
-		m_transList.SetItemText(nTmp,4,status);
-	}
-	infoList.Clean();
+	QueryTransferStatus(m_clientid,ModifyStatus,this);
 	return 0;
 }
 

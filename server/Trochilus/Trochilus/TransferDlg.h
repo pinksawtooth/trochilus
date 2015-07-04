@@ -30,6 +30,9 @@ public:
 	static DWORD WINAPI CheckTaskList(LPVOID lpParameter);
 	DWORD CheckTaskListProc();
 
+	static void ModifyStatus(LPCTSTR clientid,TRANS_STATUS status,LPVOID lpParameter);
+	void ModifyStatusProc(LPCTSTR clientid,TRANS_STATUS status,LPVOID lpParameter);
+
 	//处理模块消息
 	static void HandleModuleMsg(LPCTSTR clientid,UINT nMsg, LPVOID lpContext, LPVOID lpParameter)
 	{

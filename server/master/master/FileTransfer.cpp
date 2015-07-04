@@ -22,8 +22,7 @@ BOOL CFileTransfer::Init()
 
 BOOL CFileTransfer::MsgHandler_GetFile( MSGID msgid, const CommData& commData, LPVOID lpParameter )
 {
-	CFileTransfer* lpClass = (CFileTransfer*)lpParameter;
-	return lpClass->MsgHandler_GetFile_Proc(msgid,commData);
+	return CFileTransfer::GetInstanceRef().MsgHandler_GetFile_Proc(msgid,commData);
 }
 
 BOOL CFileTransfer::MsgHandler_GetFile_Proc(MSGID msgid, const CommData& commData)
@@ -94,8 +93,7 @@ BOOL CFileTransfer::MsgHandler_GetFile_Proc(MSGID msgid, const CommData& commDat
 
 BOOL CFileTransfer::MsgHandler_PutFile( MSGID msgid, const CommData& commData, LPVOID lpParameter )
 {
-	CFileTransfer* lpClass = (CFileTransfer*)lpParameter;
-	return lpClass->MsgHandler_PutFile_Proc(msgid,commData);
+	return CFileTransfer::GetInstanceRef().MsgHandler_PutFile_Proc(msgid,commData);
 }
 
 BOOL CFileTransfer::MsgHandler_PutFile_Proc(MSGID msgid, const CommData& commData)
@@ -107,7 +105,7 @@ BOOL CFileTransfer::MsgHandler_PutFile_Proc(MSGID msgid, const CommData& commDat
 	DECLARE_UINT64_PARAM(total)
 
 	ByteBuffer buffer = commData.GetByteData();
-
+	
 	do 
 	{
 		CFileParser& parser = CFileParser::GetInstanceRef();
@@ -117,16 +115,17 @@ BOOL CFileTransfer::MsgHandler_PutFile_Proc(MSGID msgid, const CommData& commDat
 			DeleteFile(serverpath.c_str());
 			parser.CreateFileStatus(serverpath.c_str(),md5.c_str(),total);
 		}
+		
 		BOOL ret = CFileParser::GetInstanceRef().Write(serverpath.c_str(),size,md5.c_str(),buffer);
 
 		FILE_OPTIONS options;
 		TRANS_STATUS status;
-
+		
 		options.nTotalSize = total;
 		lstrcpyA(options.szMD5,t2a(md5.c_str()));
 
 		ret = CFileParser::GetInstanceRef().GetFileCurStatus(serverpath.c_str(),options);
-
+		
 		if (!ret)
 			break;
 
@@ -255,8 +254,8 @@ void CFileTransfer::GetTransferList( LPCTSTR clientid,TransStatusVector* list )
 		ProcessMap::iterator it = m_processMap.find(clientid);
 		if (it != m_processMap.end())
 		{
-			TransStatusVector::iterator it2 = it->second.begin();
-			for (; it2 != it->second.end();it2++)
+			TransStatusVector::iterator it2 = it->second->begin();
+			for (; it2 != it->second->end();it2++)
 			{
 				list->push_back(*it2);
 			}
@@ -296,14 +295,14 @@ void CFileTransfer::UpdateTransferList( LPCTSTR clientid,TRANS_STATUS& status )
 			//查找是否存在对应ID的list
 			if (it1 != m_processMap.end())
 			{
-				list = &m_processMap[clientid];
+				list = m_processMap[clientid];
 			}
 			//如果list不存在，则添加 
 			else
 			{
-				TransStatusVector newlist;
-				newlist.push_back(status);
+				TransStatusVector *newlist = new TransStatusVector;
 				m_processMap[clientid] = newlist;
+				m_processMap[clientid]->push_back(status);
 				break;
 			}
 
