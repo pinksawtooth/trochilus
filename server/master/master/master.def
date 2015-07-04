@@ -17,7 +17,6 @@ EXPORTS
 	GetReplyByMsgserialid	@12
 	RegisterCommMsgHandler	@13
 	QuerySendingMessageStatus	@14
-	QueryFileTransferInfo		@15
 
 	QueryModuleInstallStatus	@17
 	StopMasterWorking			@18
