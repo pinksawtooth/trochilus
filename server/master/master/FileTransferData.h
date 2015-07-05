@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+#include <map>
 
 typedef struct _TRANS_STATUS
 {
@@ -10,4 +10,4 @@ typedef struct _TRANS_STATUS
 	BOOL	isDown;
 }TRANS_STATUS,*PTRANS_STATUS;
 
-typedef std::vector<TRANS_STATUS> TransStatusVector;
+typedef std::map<int,TRANS_STATUS> TransStatusVector;

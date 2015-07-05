@@ -225,6 +225,30 @@ BOOL CFileTransfer::DeleteStopList( LPCTSTR serverpath )
 	m_csStopMap.Leave();
 	return TRUE;
 }
+BOOL CFileTransfer::DeleteTransferInfo(LPCTSTR clientid, TRANS_STATUS& status )
+{
+	m_csProcessMap.Enter();
+	{
+		ProcessMap::iterator it = m_processMap.find(clientid);
+		if ( it == m_processMap.end() )
+		{
+			TransStatusVector::iterator it2 = it->second.begin();
+
+			for ( ; it2 != it->second.end(); it2++ )
+			{
+				if (it2->second.strSPath == status.strSPath)
+				{
+					DeleteStopList(status.strSPath);
+					it->second.erase(it2);
+					break;
+				}
+			}
+
+		}
+	}
+	m_csProcessMap.Leave();
+	return TRUE;
+}
 
 BOOL CFileTransfer::IsHasStop(LPCTSTR serverpath)
 {
@@ -247,17 +271,17 @@ BOOL CFileTransfer::IsHasStop(LPCTSTR serverpath)
 	return ret;
 }
 
-void CFileTransfer::GetTransferList( LPCTSTR clientid,TransStatusVector* list )
+void CFileTransfer::GetTransferList( LPCTSTR clientid,TransStatusVector& list )
 {
 	m_csProcessMap.Enter();
 	{
 		ProcessMap::iterator it = m_processMap.find(clientid);
 		if (it != m_processMap.end())
 		{
-			TransStatusVector::iterator it2 = it->second->begin();
-			for (; it2 != it->second->end();it2++)
+			TransStatusVector::iterator it2 = it->second.begin();
+			for (; it2 != it->second.end();it2++)
 			{
-				list->push_back(*it2);
+				list[it2->first] = it2->second;
 			}
 		}
 	}
@@ -268,15 +292,15 @@ BOOL CFileTransfer::GetStatusByPath(LPCTSTR clientid,CString strSPath,TRANS_STAT
 {
 
 	TransStatusVector list;
-	GetTransferList(clientid,&list);;
+	GetTransferList(clientid,list);;
 	
 	TransStatusVector::iterator it = list.begin();
 
 	for(; it != list.end(); it++)
 	{
-		if (CString(it->strSPath) == strSPath)
+		if (CString(it->second.strSPath) == strSPath)
 		{
-			status = *it;
+			status = it->second;
 			return TRUE;
 		}
 	}
@@ -290,37 +314,46 @@ void CFileTransfer::UpdateTransferList( LPCTSTR clientid,TRANS_STATUS& status )
 		do 
 		{
 			ProcessMap::iterator it1 = m_processMap.find(clientid);
-			TransStatusVector *list;
 
-			//查找是否存在对应ID的list
+			//查找是否存在对应clientid的list
 			if (it1 != m_processMap.end())
 			{
-				list = m_processMap[clientid];
+				TransStatusVector &list = m_processMap[clientid];
+
+				//迭代查找符合条件的
+				TransStatusVector::iterator it2 = list.begin();
+
+				for (; it2 != list.end(); it2++)
+				{
+					if (CString(it2->second.strSPath) == CString(status.strSPath))
+					{
+						list[it2->first] = status;
+						break;
+					}
+				}
+
+				//没有符合条件的就添加
+				if (it2 == list.end())
+				{
+					for(int i = 0 ; i <= 10000 ; i++)
+					{
+						if (list.find(i) == list.end())
+						{
+							list[i] = status;
+							break;
+						}
+					}
+				}
 			}
 			//如果list不存在，则添加 
 			else
 			{
-				TransStatusVector *newlist = new TransStatusVector;
+				TransStatusVector newlist;
+
+				newlist[0] = status;
 				m_processMap[clientid] = newlist;
-				m_processMap[clientid]->push_back(status);
-				break;
 			}
 
-			//迭代查找符合条件的
-			TransStatusVector::iterator it2 = list->begin();
-
-			for (; it2 != list->end(); it2++)
-			{
-				if (CString(it2->strSPath) == CString(status.strSPath))
-				{
-					*it2 = status;
-					break;
-				}
-			}
-			if (it2 == list->end())
-			{
-				list->push_back(status);
-			}
 		} while (FALSE);
 	}
 	m_csProcessMap.Leave();

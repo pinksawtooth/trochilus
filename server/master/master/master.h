@@ -21,52 +21,6 @@
 #include "FileTransferData.h"
 
 
-typedef struct  
-{
-	CHAR	partition;
-	UINT	driverType;
-	UINT64	freeBytes;
-	UINT64	totalBytes;
-} MDISK_INFO;
-typedef ItemList<MDISK_INFO, NO_UNINIT> MDiskInfoList;
-
-typedef struct MFILE_INFO
-{
-	WCHAR		filename[MAX_PATH];
-	DWORD		dwAttributes;
-	UINT64		filesize;
-	FILETIME	lastWriteTime;
-
-	BOOL IsDir() const
-	{
-		return (FILE_ATTRIBUTE_DIRECTORY & dwAttributes);
-	}
-
-	bool operator<(const MFILE_INFO& another) const
-	{
-		if (! IsDir() && another.IsDir()) return false;
-		else if (IsDir() && ! another.IsDir()) return true;
-		else
-		{
-			int iCmp = _wcsicmp(filename, another.filename);
-			if (iCmp < 0) return true;
-			else return false;
-		}
-	}
-} MFILE_INFO;
-typedef ItemList<MFILE_INFO, NO_UNINIT> MFileInfoList;
-
-typedef std::map<std::string,int> PORT_MAP;
-//消息传输信息
-typedef struct  
-{
-	MSGSERIALID serial;
-	BOOL		bToClient;
-	TCHAR		desc[1024];
-} RC_MSG_INFO;
-typedef ItemList<RC_MSG_INFO, NO_UNINIT> RcMsgInfoList;
-
-typedef ItemList<TRANS_STATUS, NO_UNINIT> TransferInfoList;
 //Shell相关接口
 MASTER2_API BOOL OpenShell(LPCWSTR clientid, FnRemoteCmdOutput fnRemoteCmdOutput, LPVOID lpParameter);
 
@@ -80,13 +34,16 @@ MASTER2_API BOOL PutFileToClient(LPCTSTR clientid,LPCTSTR serverpath,LPCTSTR cli
 
 MASTER2_API BOOL GetFileToServer(LPCTSTR clientid,LPCTSTR clientpath,LPCTSTR serverpath);
 
-MASTER2_API BOOL StopFileTransfer(LPCTSTR clientid,LPCTSTR serverpath);
+MASTER2_API BOOL StopFileTransfer( LPCTSTR clientid ,TRANS_STATUS& status );
 
-MASTER2_API BOOL StartFileTransfer(LPCTSTR clientid,LPCTSTR serverpath);
+MASTER2_API BOOL StartFileTransfer( LPCTSTR clientid ,TRANS_STATUS& status );
+
+MASTER2_API BOOL DeleteFileTransfer( LPCTSTR clientid ,TRANS_STATUS& status );
+
+MASTER2_API BOOL IsHasStop ( LPCTSTR clientid ,TRANS_STATUS& status );
 
 
 typedef void (*FnQueryTrans)(LPCTSTR clientid,TRANS_STATUS status,LPVOID lpParameter);
-MASTER2_API void QueryFileTransferStatus(LPCTSTR clientid,TransferInfoList* list);
 MASTER2_API void QueryTransferStatus(LPCTSTR clientid,FnQueryTrans fn,LPVOID lpParameter);
 
 MASTER2_API void DeleteRemoteFile(LPCTSTR clientid,LPCTSTR clientpath);
@@ -94,11 +51,6 @@ MASTER2_API void DeleteRemoteFile(LPCTSTR clientid,LPCTSTR clientpath);
 MASTER2_API void RunRemoteFile(LPCTSTR clientid,LPCTSTR clientpath);
 
 //文件浏览相关接口
-
-MASTER2_API BOOL ListDisks(LPCWSTR clientid, MDiskInfoList* pDiskInfoList);
-
-MASTER2_API BOOL ListFiles(LPCWSTR clientid, LPCWSTR findstr, MFileInfoList* pFileInfoList);
-
 MASTER2_API void AsynListFiles( LPCTSTR clientid, LPCTSTR findstr,BOOL isClient, LPVOID lpParameter);
 
 MASTER2_API void AsynListDisks( LPCWSTR clientid,BOOL isClient, LPVOID lpParameter );

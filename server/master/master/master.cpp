@@ -301,134 +301,6 @@ MASTER2_API void CloseShell(LPCTSTR clientid)
 	ShellManager::GetInstanceRef().CloseShell(clientid);
 }
 
-MASTER2_API BOOL ListDisks( LPCTSTR clientid, MDiskInfoList* pDiskInfoList )
-{
-	if (NULL == clientid || NULL == pDiskInfoList) return FALSE;
-
-	CommData sendData;
-	sendData.SetMsgID(MSGID_DISKS);
-
-	MSGSERIALID serialID = CommManager::GetInstanceRef().AddToSendMessage(clientid, sendData);
-	if (INVALID_MSGSERIALID == serialID)
-	{
-		errorLog(_T("add to send msg failed"));
-		return FALSE;
-	}
-
-	CommData commData;
-	if (! WaitForReply(clientid, serialID, commData))
-	{
-		return FALSE;
-	}
-
-	std::list<MDISK_INFO> diskList;
-
-	DECLARE_STR_PARAM_API(result);
-	TStringVector partitionList;
-	splitByChar(result.c_str(), partitionList, ':');
-	TStringVector::iterator partitionIter = partitionList.begin();
-	for (; partitionIter != partitionList.end(); partitionIter++)
-	{
-		const tstring& line = *partitionIter;
-		TStringVector dataList;
-		splitByChar(line.c_str(), dataList, '|');
-		if (dataList.size() != 4) continue;
-		tstring& partition = dataList[0];
-		if (partition.size() == 0) continue;
-		UINT driverType;
-		if (0 == _stscanf_s(dataList[1].c_str(), _T("%u"), &driverType)) continue;
-		UINT64 totalBytes = 0;
-		UINT64 freeBytes = 0;
-		if (0 == _stscanf_s(dataList[2].c_str(), _T("%I64u"), &totalBytes)) continue;
-		if (0 == _stscanf_s(dataList[3].c_str(), _T("%I64u"), &freeBytes)) continue;
-
-		MDISK_INFO info;
-		info.partition = ws2s(partition)[0];
-		info.freeBytes = freeBytes;
-		info.totalBytes = totalBytes;
-		info.driverType = driverType;
-
-		diskList.push_back(info);
-	}
-
-	if (diskList.size() > 0)
-	{
-		pDiskInfoList->Alloc(diskList.size());
-		std::list<MDISK_INFO>::iterator iter = diskList.begin();
-		for (int i = 0; iter != diskList.end(); iter++, i++)
-		{
-			pDiskInfoList->At(i) = *iter;
-		}
-	}
-
-	return TRUE;
-}
-
-MASTER2_API BOOL ListFiles( LPCTSTR clientid, LPCTSTR findstr, MFileInfoList* pFileInfoList )
-{
-	if (NULL == clientid || NULL == findstr || NULL == pFileInfoList) return FALSE;
-
-	CommData sendData;
-	sendData.SetMsgID(MSGID_LIST_FILES);
-	sendData.SetData(_T("findstr"), findstr);
-
-	MSGSERIALID serialID = CommManager::GetInstanceRef().AddToSendMessage(clientid, sendData);
-	if (INVALID_MSGSERIALID == serialID)
-	{
-		errorLog(_T("add to send msg failed"));
-		return FALSE;
-	}
-
-	CommData commData;
-	if (! WaitForReply(clientid, serialID, commData))
-	{
-		return FALSE;
-	}
-
-	std::vector<MFILE_INFO> fileList;
-
-	DECLARE_STR_PARAM_API(result);
-	TStringVector partitionList;
-	splitByChar(result.c_str(), partitionList, ':');
-	TStringVector::iterator partitionIter = partitionList.begin();
-	for (; partitionIter != partitionList.end(); partitionIter++)
-	{
-		const tstring& line = *partitionIter;
-		TStringVector dataList;
-		splitByChar(line.c_str(), dataList, '|');
-		if (dataList.size() != 4) continue;
-		DWORD dwAttributes;
-		if (0 == _stscanf_s(dataList[1].c_str(), _T("%u"), &dwAttributes)) continue;
-		UINT64 filesize = 0;
-		ULARGE_INTEGER lastWritetime = {0};
-		if (0 == _stscanf_s(dataList[2].c_str(), _T("%I64u"), &filesize)) continue;
-		if (0 == _stscanf_s(dataList[3].c_str(), _T("%I64u"), &lastWritetime.QuadPart)) continue;
-
-		MFILE_INFO info = {0};
-		_tcscpy_s(info.filename, dataList[0].c_str());
-		info.dwAttributes = dwAttributes;
-		info.filesize = filesize;
-		info.lastWriteTime.dwHighDateTime = lastWritetime.HighPart;
-		info.lastWriteTime.dwLowDateTime = lastWritetime.LowPart;
-
-		fileList.push_back(info);
-	}
-
-	if (fileList.size() > 0)
-	{
-		sort(fileList.begin(), fileList.end());
-
-		pFileInfoList->Alloc(fileList.size());
-		std::vector<MFILE_INFO>::iterator iter = fileList.begin();
-		for (int i = 0; iter != fileList.end(); iter++, i++)
-		{
-			pFileInfoList->At(i) = *iter;
-		}
-	}
-
-	return TRUE;
-}
-
 MASTER2_API void AsynListFiles( LPCTSTR clientid, LPCTSTR findstr,BOOL isClient, LPVOID lpParameter )
 {
 	LIST_FILE_PARAMETER* pData = new LIST_FILE_PARAMETER;
@@ -642,7 +514,7 @@ MASTER2_API BOOL ModifyPacketStatus(ULONG serial,LPCTSTR clientid,BOOL status)
 }
 
 
-/***********************文件传输API***********************************/
+/***********************文件管理API***********************************/
 
 MASTER2_API BOOL PutFileToClient( LPCTSTR clientid,LPCTSTR serverpath,LPCTSTR clientpath )
 {
@@ -654,31 +526,10 @@ MASTER2_API BOOL GetFileToServer( LPCTSTR clientid,LPCTSTR clientpath,LPCTSTR se
 	return CFileTransfer::GetInstanceRef().RequestGetFile(clientid,clientpath,serverpath);
 }
 
-MASTER2_API void QueryFileTransferStatus( LPCTSTR clientid,TransferInfoList* list )
-{
-	TransStatusVector vec;
-	CFileTransfer::GetInstanceRef().GetTransferList(clientid,&vec);
-
-	if (vec.size() > 0)
-	{
-		list->Alloc(vec.size());
-		TransStatusVector::iterator iter = vec.begin();
-		for (int i = 0; iter != vec.end(); iter++, i++)
-		{
-			TRANS_STATUS& info = *iter;
-			TRANS_STATUS& myinfo = list->At(i);
-
-			memcpy(&myinfo,&info,sizeof(TRANS_STATUS));
-		}
-	}
-
-	
-}
-
 MASTER2_API void QueryTransferStatus(LPCTSTR clientid,FnQueryTrans fn,LPVOID lpParameter)
 {
 	TransStatusVector vec;
-	CFileTransfer::GetInstanceRef().GetTransferList(clientid,&vec);
+	CFileTransfer::GetInstanceRef().GetTransferList(clientid,vec);
 
 
 	TransStatusVector::iterator iter = vec.begin();
@@ -686,20 +537,39 @@ MASTER2_API void QueryTransferStatus(LPCTSTR clientid,FnQueryTrans fn,LPVOID lpP
 	{
 		if (fn)
 		{
-			fn(clientid,*iter,lpParameter);
+			fn(clientid,iter->second,lpParameter);
 		}
 	}
 
 }
 
-MASTER2_API BOOL StartFileTransfer(LPCTSTR clientid,LPCTSTR serverpath)
+MASTER2_API BOOL StartFileTransfer( LPCTSTR clientid ,TRANS_STATUS& status )
 {
-	return CFileTransfer::GetInstanceRef().DeleteStopList(serverpath);
+	CFileTransfer::GetInstanceRef().DeleteStopList(status.strSPath);
+
+	if (status.isDown)
+	{
+		return CFileTransfer::GetInstanceRef().RequestGetFile(clientid,status.strCPath,status.strSPath);
+	}
+	else
+	{
+		return CFileTransfer::GetInstanceRef().RequestPutFile(clientid,status.strCPath,status.strSPath);
+	}
 }
 
-MASTER2_API BOOL StopFileTransfer(LPCTSTR clientid,LPCTSTR serverpath)
+MASTER2_API BOOL StopFileTransfer( LPCTSTR clientid ,TRANS_STATUS& status )
 {
-	return CFileTransfer::GetInstanceRef().AddStopList(serverpath);
+	return CFileTransfer::GetInstanceRef().AddStopList(status.strSPath);
+}
+
+MASTER2_API BOOL DeleteFileTransfer( LPCTSTR clientid ,TRANS_STATUS& status )
+{
+	return CFileTransfer::GetInstanceRef().DeleteTransferInfo(clientid,status);
+}
+
+MASTER2_API BOOL IsHasStop ( LPCTSTR clientid ,TRANS_STATUS& status )
+{
+	return CFileTransfer::GetInstanceRef().IsHasStop(status.strSPath);
 }
 
 MASTER2_API void DeleteRemoteFile(LPCTSTR clientid,LPCTSTR clientpath)
@@ -730,6 +600,7 @@ MASTER2_API void RunRemoteFile(LPCTSTR clientid,LPCTSTR clientpath)
 	}
 }
 
+/***********************模块功能API***********************************/
 MASTER2_API void SetModuleCallBack(FnModuleNotifyProc func)
 {
 	ClientInfoManager::GetInstanceRef().SetModuleCallBack(func);

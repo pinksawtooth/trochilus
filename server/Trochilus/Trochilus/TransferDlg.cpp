@@ -31,6 +31,9 @@ void CTransferDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CTransferDlg, CDialogEx)
 	ON_WM_DESTROY()
+	ON_BN_CLICKED(IDC_BUTTON_STARTTRANS, &CTransferDlg::OnBnClickedButtonStart)
+	ON_BN_CLICKED(IDC_BUTTON_STOP, &CTransferDlg::OnBnClickedButtonStop)
+	ON_BN_CLICKED(IDC_BUTTON_DELETE, &CTransferDlg::OnBnClickedButtonDelete)
 END_MESSAGE_MAP()
 
 void CTransferDlg::InitView()
@@ -82,18 +85,27 @@ void CTransferDlg::ModifyStatusProc(LPCTSTR clientid,TRANS_STATUS status,LPVOID 
 	DWORD dwTotalBytes = info.nTotal;
 
 
+	//字节进度
 	CString donebytes;
-	donebytes.Format(_T("%u"), dwDoneBytes);
+	donebytes.Format(_T("%u MB"), dwDoneBytes);
 	CString totalbytes;
-	totalbytes.Format(_T("%u"), dwTotalBytes);
+	totalbytes.Format(_T("%u MB"), dwTotalBytes);
 
 	float fProcess = ((float)dwDoneBytes)/((float)dwTotalBytes);
 	int nProcess = (int)(fProcess * (float)100);
 
+
+	//百分之进度
 	CString process;
 	process.Format(_T("%d / %d"),dwDoneBytes,dwTotalBytes);
 
 	CString sstatus = !info.isDown ? _T("Uploading") : _T("Downloading");
+
+	if (IsHasStop(m_clientid,status))
+	{
+		sstatus = _T("Stopped");
+	}
+	
 	CString progress;
 	progress.Format(_T("%d%%"),nProcess);
 	if (nProcess == 100)
@@ -108,6 +120,12 @@ void CTransferDlg::ModifyStatusProc(LPCTSTR clientid,TRANS_STATUS status,LPVOID 
 		nTmp = 0;
 		int nImage = m_ImageList.Add(CIconLoader::GetInstanceRef().LoadIcon(info.strSPath));
 		m_transList.InsertItem(nTmp,info.strSPath,nImage);
+
+		TRANS_STATUS *myStatus = new TRANS_STATUS;
+
+		memcpy(myStatus,&status,sizeof(TRANS_STATUS));
+
+		m_transList.SetItemData(nTmp,(DWORD_PTR)myStatus);
 		m_transList.SetItemText(nTmp,1,info.strCPath);
 	}
 	m_transList.SetItemText(nTmp,2,process);
@@ -142,4 +160,38 @@ void CTransferDlg::OnDestroy()
 {
 	__super::OnDestroy();
 	m_checkTask.Stop();
+}
+
+
+void CTransferDlg::OnBnClickedButtonStart()
+{
+	POSITION pos =  m_transList.GetFirstSelectedItemPosition();   
+	int index = m_transList.GetNextSelectedItem(pos);
+
+	TRANS_STATUS* pData = (TRANS_STATUS*)m_transList.GetItemData(index);
+
+	StartFileTransfer(m_clientid,*pData);
+
+}
+
+
+void CTransferDlg::OnBnClickedButtonStop()
+{
+	POSITION pos =  m_transList.GetFirstSelectedItemPosition();   
+	int index = m_transList.GetNextSelectedItem(pos);
+
+	TRANS_STATUS* pData = (TRANS_STATUS*)m_transList.GetItemData(index);
+
+	StopFileTransfer(m_clientid,*pData);
+}
+
+
+void CTransferDlg::OnBnClickedButtonDelete()
+{
+	POSITION pos =  m_transList.GetFirstSelectedItemPosition();   
+	int index = m_transList.GetNextSelectedItem(pos);
+
+	TRANS_STATUS* pData = (TRANS_STATUS*)m_transList.GetItemData(index);
+
+	DeleteFileTransfer(m_clientid,*pData);
 }

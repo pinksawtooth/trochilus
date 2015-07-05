@@ -18,9 +18,9 @@ public:
 	BOOL AddStopList(LPCTSTR serverpath);
 	BOOL DeleteStopList(LPCTSTR serverpath);
 
-	void GetTransferList(LPCTSTR clientid,TransStatusVector* list);
+	void GetTransferList(LPCTSTR clientid,TransStatusVector& list);
 	void UpdateTransferList(LPCTSTR clientid,TRANS_STATUS& status);
-	void DeleteTransferInfo(LPCTSTR clientid,TRANS_STATUS& status);
+	BOOL DeleteTransferInfo(LPCTSTR clientid,TRANS_STATUS& status);
 
 	BOOL RequestGetFile(LPCTSTR clientid,LPCTSTR clientpath,LPCTSTR serverpath);
 	BOOL RequestPutFile(LPCTSTR clientid,LPCTSTR clientpath,LPCTSTR serverpath);
@@ -33,7 +33,7 @@ private:
 	TransStopList m_stopList;
 
 	CriticalSection m_csProcessMap;
-	typedef std::map<CString,TransStatusVector*> ProcessMap;
+	typedef std::map<CString,TransStatusVector> ProcessMap;
 	ProcessMap m_processMap;
 };
 

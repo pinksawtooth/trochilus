@@ -45,4 +45,7 @@ public:
 
 	//响应窗口销毁消息
 	afx_msg void OnDestroy();
+	afx_msg void OnBnClickedButtonStart();
+	afx_msg void OnBnClickedButtonStop();
+	afx_msg void OnBnClickedButtonDelete();
 };

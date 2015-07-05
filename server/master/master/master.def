@@ -21,8 +21,6 @@ EXPORTS
 	QueryModuleInstallStatus	@17
 	StopMasterWorking			@18
 
-	ListDisks				@19
-	ListFiles				@20
 	AsynListFiles			@21
 	AsynListDisks			@22
 
