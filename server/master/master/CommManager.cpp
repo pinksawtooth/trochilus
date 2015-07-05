@@ -465,14 +465,11 @@ int CommManager::HttpMsgHandler( struct mg_connection *conn, enum mg_event ev )
 
 		sprintf_s(szLength,"%d",toSendBuffer.Size());
 
-		mg_send_header(conn,
-			"Content-Length",
-			szLength);
+		mg_send_header(conn,"Content-Length",szLength);
 
 		if (bNeedReply)
-		{
 			mg_send_data(conn,toSendBuffer,toSendBuffer.Size());
-		}
+
 		return MG_TRUE;
 
 	default: return MG_FALSE;

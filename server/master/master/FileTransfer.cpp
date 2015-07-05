@@ -46,6 +46,13 @@ BOOL CFileTransfer::MsgHandler_GetFile_Proc(MSGID msgid, const CommData& commDat
 
 	do 
 	{
+		ret = IsHasStop(serverpath.c_str());
+
+		if ( ret )
+		{
+			break;
+		}
+
 		TRANS_STATUS status;
 
 		ByteBuffer buffer;
@@ -65,8 +72,8 @@ BOOL CFileTransfer::MsgHandler_GetFile_Proc(MSGID msgid, const CommData& commDat
 
 		UpdateTransferList(commData.GetClientID(),status);
 
-		//下载完成则停止请求
-		if (offset == FileSize)
+		//完成则停止请求
+		if ( offset == FileSize )
 			break;
 
 		CommData sendData;
@@ -85,6 +92,7 @@ BOOL CFileTransfer::MsgHandler_GetFile_Proc(MSGID msgid, const CommData& commDat
 			errorLog(_T("add to send msg failed"));
 			break;
 		}
+
 
 	} while (FALSE);
 
@@ -230,16 +238,16 @@ BOOL CFileTransfer::DeleteTransferInfo(LPCTSTR clientid, TRANS_STATUS& status )
 	m_csProcessMap.Enter();
 	{
 		ProcessMap::iterator it = m_processMap.find(clientid);
-		if ( it == m_processMap.end() )
+		if ( it != m_processMap.end() )
 		{
 			TransStatusVector::iterator it2 = it->second.begin();
 
 			for ( ; it2 != it->second.end(); it2++ )
 			{
-				if (it2->second.strSPath == status.strSPath)
+				if (lstrcmp(it2->second.strSPath , status.strSPath) == 0)
 				{
 					DeleteStopList(status.strSPath);
-					it->second.erase(it2);
+					m_processMap[clientid].erase(it2);
 					break;
 				}
 			}

@@ -537,12 +537,20 @@ BOOL CFileMgrDlg::IsEquPath( LPCTSTR filename,BOOL isRemote )
 
 	int nCount = list->GetItemCount();
 
+	BOOL ret = FALSE;
+
 	for(int j = 0 ; j < nCount ; j++)
 	{
 		CString str1 = list->GetItemText(j,0);
 
+		if (str1+_T(".cfg") == filename )
+		{
+			ret = FALSE;
+			break;
+		}
+
 		if (str1 == filename)
-			return TRUE;
+			ret = TRUE;
 	}
 
 	return FALSE;

@@ -166,6 +166,13 @@ void CTransferDlg::OnDestroy()
 void CTransferDlg::OnBnClickedButtonStart()
 {
 	POSITION pos =  m_transList.GetFirstSelectedItemPosition();   
+
+	if (pos == 0)
+	{
+		AfxMessageBox(_T("No selected!"));
+		return;
+	}
+
 	int index = m_transList.GetNextSelectedItem(pos);
 
 	TRANS_STATUS* pData = (TRANS_STATUS*)m_transList.GetItemData(index);
@@ -177,7 +184,14 @@ void CTransferDlg::OnBnClickedButtonStart()
 
 void CTransferDlg::OnBnClickedButtonStop()
 {
-	POSITION pos =  m_transList.GetFirstSelectedItemPosition();   
+	POSITION pos =  m_transList.GetFirstSelectedItemPosition();  
+
+	if (pos == 0)
+	{
+		AfxMessageBox(_T("No selected!"));
+		return;
+	}
+
 	int index = m_transList.GetNextSelectedItem(pos);
 
 	TRANS_STATUS* pData = (TRANS_STATUS*)m_transList.GetItemData(index);
@@ -189,9 +203,20 @@ void CTransferDlg::OnBnClickedButtonStop()
 void CTransferDlg::OnBnClickedButtonDelete()
 {
 	POSITION pos =  m_transList.GetFirstSelectedItemPosition();   
+
+	if (pos == 0)
+	{
+		AfxMessageBox(_T("No selected!"));
+		return;
+	}
+
 	int index = m_transList.GetNextSelectedItem(pos);
 
 	TRANS_STATUS* pData = (TRANS_STATUS*)m_transList.GetItemData(index);
 
 	DeleteFileTransfer(m_clientid,*pData);
+
+	m_transList.DeleteItem(index);
+
+	delete pData;
 }
