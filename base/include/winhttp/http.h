@@ -13,7 +13,7 @@
 namespace ctx
 {
 	typedef BOOL (*PROGRESSPROC)(double);
-	static const DWORD INT_RETRYTIMES = 3;
+	static const DWORD INT_RETRYTIMES = 1;
 	static LPCTSTR SZ_AGENT = TEXT("WinHttpClient");
 	static const DWORD INT_BUFFERSIZE = 1024 * 10;
 

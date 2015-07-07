@@ -332,7 +332,7 @@ BOOL ctx::http::SendHttpRequest(LPCTSTR httpVerb, BOOL disableAutoRedirect)
 					if (!HttpReceiveResponse(hRequest))
 						break;
 					ResponseCharsetConvert();
-					bGetReponseSucceed = HandleAutoRedirectResponse(hRequest, verb, disableAutoRedirect);
+					bGetReponseSucceed = TRUE;
 				}
 				else
 				{
