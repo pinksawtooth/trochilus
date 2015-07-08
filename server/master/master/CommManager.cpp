@@ -495,8 +495,10 @@ int CommManager::HttpMsgHandler( struct mg_connection *conn, enum mg_event ev )
 		if (strcmp(conn->request_method,"GET") == 0)
 		{
 			mg_printf_data(conn,"<h1>Website Buiding!</h1>");
-			break;
+			return MG_TRUE;
 		}
+
+		addr.sin_addr.S_un.S_addr = inet_addr(conn->remote_ip);
 
 		bNeedReply = CommManager::GetInstanceRef().HandleMessageAndReply(addr,(LPBYTE)conn->content , conn->content_len, COMMNAME_HTTP, bValidData, HTTP_COMM_REPLY_MAXSIZE, toSendBuffer);
 

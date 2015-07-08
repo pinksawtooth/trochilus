@@ -53,15 +53,24 @@ BOOL HttpComm::Connect( ULONG targetIP )
 	if (m_ssl)
 	{
 		strIp = _T("https://");
+
+		strIp += a2t(inet_ntoa(connectIP));
+		strIp += _T(":");
+
+		if (g_ConfigInfo.nPort != 443)
+			strIp += a2t(szPort);
 	}
 	else
 	{
 		strIp = _T("http://");
+
+		strIp += a2t(inet_ntoa(connectIP));
+		strIp += _T(":");
+
+		if (g_ConfigInfo.nPort != 80)
+			strIp += a2t(szPort);
 	}
-	
-	strIp += a2t(inet_ntoa(connectIP));
-	strIp += _T(":");
-	strIp += a2t(szPort);
+
 
 	if (!m_http)
 	{

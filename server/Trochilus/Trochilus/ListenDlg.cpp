@@ -50,11 +50,10 @@ void CListenDlg::InitView()
 
 	m_protoList.InsertString(2,_T("TCP"));
 	m_protoList.SetItemData(2,COMMNAME_TCP);
-// 	m_protoList.InsertString(2,_T("DNS"));
-// 	m_protoList.SetItemData(2,5);
+
 	m_protoList.SetCurSel(0);
 
-	SetDlgItemText(IDC_EDIT_PORT,_T("8082"));
+	SetDlgItemText(IDC_EDIT_PORT,_T("80"));
 }
 
 
@@ -156,7 +155,7 @@ void CListenDlg::OnBnClickedButtonStop()
 	CString str;
 	POSITION pos=m_listenList.GetFirstSelectedItemPosition();
 	if(pos == NULL)
-		AfxMessageBox(L"No item has selected!");
+		AfxMessageBox(_T("No item has selected!"));
 	else
 	{
 		int nIdx = -1;
@@ -203,13 +202,19 @@ void CListenDlg::OnCbnSelendcancelComboProto()
 void CListenDlg::OnCbnSelchangeComboProto()
 {
 	int nSel = m_protoList.GetCurSel();
+	int data = m_protoList.GetItemData(nSel);
 
-	if(nSel == 0)
+	if(data == COMMNAME_HTTP)
 	{
-		SetDlgItemText(IDC_EDIT_PORT,_T("8082"));
+		SetDlgItemText(IDC_EDIT_PORT,_T("80"));
 		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(TRUE);
 	}
-	else if(nSel == 1)
+	if(data == COMMNAME_HTTPS)
+	{
+		SetDlgItemText(IDC_EDIT_PORT,_T("443"));
+		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(TRUE);
+	}
+	else if(data == COMMNAME_TCP)
 	{
 		SetDlgItemText(IDC_EDIT_PORT,_T("8082"));
 		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(TRUE);
