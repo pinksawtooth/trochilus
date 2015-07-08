@@ -24,6 +24,7 @@ BOOL CommManager::Init()
 	ZeroMemory(m_commAvailableList, sizeof(m_commAvailableList));
 
 	m_commList[COMMNAME_HTTP] = new HttpComm;
+	m_commList[COMMNAME_HTTPS] = new HttpComm(TRUE);
 	m_commList[COMMNAME_TCP] = new TcpComm;
 
 	m_hExitEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -191,6 +192,10 @@ BOOL CommManager::Str2Commname( LPCTSTR str, COMM_NAME& commName ) const
 	commName = COMMNAME_MAX;
 	if (_tcscmp(str, _T("http")) == 0)
 	{
+		commName = COMMNAME_HTTPS;
+	}
+	else if (_tcscmp(str, _T("https")) == 0)
+	{
 		commName = COMMNAME_HTTP;
 	}
 	else if (_tcscmp(str, _T("tcp")) == 0)
@@ -207,6 +212,9 @@ BOOL CommManager::Commname2Str( COMM_NAME commName, tstring& str ) const
 	{
 	case COMMNAME_HTTP:
 		str = _T("http");
+		break;
+	case COMMNAME_HTTPS:
+		str = _T("https");
 		break;
 	case COMMNAME_TCP:
 		str = _T("tcp");

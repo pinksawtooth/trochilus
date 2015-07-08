@@ -10,6 +10,8 @@
 #include "DnsResolver.h"
 #include "mongoose/mongoose.h"
 
+#pragma comment(lib, "libeay32.lib")
+#pragma comment(lib, "ssleay32.lib")
 #pragma comment(lib, "ws2_32.lib")
 
 CommManager::CommManager()
@@ -109,7 +111,36 @@ int CommManager::AddCommService(int port,int name)
 			}
 
 			DWORD tid = _beginthread(HttpPollThread,0,server);
-			
+
+			info.lpParameter1 = server;
+			info.lpParameter2 = (LPVOID)tid;
+			info.nCommName = COMMNAME_HTTP;
+
+			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
+
+			ret = serial;
+
+			break;
+		}
+	case COMMNAME_HTTPS:
+		{
+			struct mg_server *server;
+
+			// Create and configure the server
+			server = mg_create_server(NULL, HttpMsgHandler);
+
+			CString https = _T("");
+
+			https.Format(_T("ssl://%d:certs/cert.pem"),port);
+
+			if( mg_set_option(server, "listening_port", CStringA(https)) != NULL )
+			{
+				mg_destroy_server(&server);
+				break;
+			}
+
+			DWORD tid = _beginthread(HttpPollThread,0,server);
+
 			info.lpParameter1 = server;
 			info.lpParameter2 = (LPVOID)tid;
 			info.nCommName = COMMNAME_HTTP;
@@ -460,6 +491,12 @@ int CommManager::HttpMsgHandler( struct mg_connection *conn, enum mg_event ev )
 	case MG_AUTH: return MG_TRUE;
 
 	case MG_REQUEST:
+
+		if (strcmp(conn->request_method,"GET") == 0)
+		{
+			mg_printf_data(conn,"<h1>Website Buiding!</h1>");
+			break;
+		}
 
 		bNeedReply = CommManager::GetInstanceRef().HandleMessageAndReply(addr,(LPBYTE)conn->content , conn->content_len, COMMNAME_HTTP, bValidData, HTTP_COMM_REPLY_MAXSIZE, toSendBuffer);
 

@@ -147,8 +147,10 @@ void CGeneratorDlg::InitDlgEdit()
 
 	m_DefaultComm.InsertString(0,_T("HTTP"));
 	m_DefaultComm.SetItemData(0,COMMNAME_HTTP);
-	m_DefaultComm.InsertString(1,_T("TCP"));
-	m_DefaultComm.SetItemData(1,COMMNAME_TCP);
+	m_DefaultComm.InsertString(1,_T("HTTPS"));
+	m_DefaultComm.SetItemData(1,COMMNAME_HTTPS);
+	m_DefaultComm.InsertString(2,_T("TCP"));
+	m_DefaultComm.SetItemData(2,COMMNAME_TCP);
 	
 
 	m_DefaultComm.SetCurSel(config.commType);

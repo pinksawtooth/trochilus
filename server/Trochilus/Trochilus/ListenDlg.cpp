@@ -44,8 +44,12 @@ void CListenDlg::InitView()
 
 	m_protoList.InsertString(0,_T("HTTP"));
 	m_protoList.SetItemData(0,COMMNAME_HTTP);
-	m_protoList.InsertString(1,_T("TCP"));
-	m_protoList.SetItemData(1,COMMNAME_TCP);
+
+	m_protoList.InsertString(1,_T("HTTPS"));
+	m_protoList.SetItemData(1,COMMNAME_HTTPS);
+
+	m_protoList.InsertString(2,_T("TCP"));
+	m_protoList.SetItemData(2,COMMNAME_TCP);
 // 	m_protoList.InsertString(2,_T("DNS"));
 // 	m_protoList.SetItemData(2,5);
 	m_protoList.SetCurSel(0);
@@ -115,6 +119,10 @@ void CListenDlg::OnBnClickedButtonStart()
 		strProtocol = _T("HTTP");
 	}
 	else if (sel == 1)
+	{
+		strProtocol = _T("HTTPS");
+	}
+	else if (sel == 2)
 	{
 		strProtocol = _T("TCP");
 	}

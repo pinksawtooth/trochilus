@@ -2,10 +2,10 @@
 #include "socket/MySocket.h"
 #include "HttpComm.h"
 
-HttpComm::HttpComm():
+HttpComm::HttpComm(BOOL isSSL):
 m_http(NULL)
 {
-
+	m_ssl = isSSL;
 }
 
 BOOL HttpComm::Send( ULONG targetIP, const LPBYTE pData, DWORD dwSize )
@@ -47,8 +47,18 @@ BOOL HttpComm::Connect( ULONG targetIP )
 
 	IN_ADDR connectIP;
 	connectIP.S_un.S_addr = targetIP;
+	
+	tstring strIp;
 
-	tstring strIp = _T("http://");
+	if (m_ssl)
+	{
+		strIp = _T("https://");
+	}
+	else
+	{
+		strIp = _T("http://");
+	}
+	
 	strIp += a2t(inet_ntoa(connectIP));
 	strIp += _T(":");
 	strIp += a2t(szPort);
