@@ -14,8 +14,6 @@ CTcp::~CTcp(void)
 
 void CTcp::Init()
 {
-	WSADATA data;
-	WSAStartup(MAKEWORD(2,2),&data);
 }
 
 void CTcp::Stop()

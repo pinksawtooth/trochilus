@@ -7,7 +7,7 @@ Coded in C++ (using VS2010)
 
 Features
 ---
-* Support TCP,HTTP,HTTPS
+* Support TCP,HTTP,HTTPS,UDP
 * Serilize Protocol
 * Support Non-UAC
 * Shellcode Extension
@@ -30,7 +30,7 @@ Build
 ToDo
 ---
 * ~~Reverse SOCKS5 Proxy~~
-* Support UDP reliable transfer.
+* ~~Support UDP reliable transfer.~~
 * Shellcode extension SDK.
 
 Contributing

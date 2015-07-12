@@ -62,6 +62,8 @@
       <ModuleDefinitionFile>master.def</ModuleDefinitionFile>
       <ImportLibrary>..\..\libsD\$(TargetName).lib</ImportLibrary>
       <AdditionalLibraryDirectories>..\..\libsD\;..\..\..\base\lib\x86\;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -166,6 +168,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Tcp.h" />
+    <ClInclude Include="Udp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\base\include\encrypt\encrypt.cpp" />
@@ -203,6 +206,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Tcp.cpp" />
+    <ClCompile Include="Udp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="master.rc" />

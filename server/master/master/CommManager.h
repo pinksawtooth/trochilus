@@ -92,6 +92,7 @@ private:
 	static void HttpPollThread(LPVOID lpParameter);
 
 	static BOOL TcpMsgHandler(LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender);
+	static BOOL UdpMsgHandler(LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender);
 
 private:
 	ICMPSocket	m_icmpSocket;

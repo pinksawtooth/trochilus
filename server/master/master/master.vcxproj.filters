@@ -300,6 +300,9 @@
     <ClInclude Include="Tcp.h">
       <Filter>comm</Filter>
     </ClInclude>
+    <ClInclude Include="Udp.h">
+      <Filter>comm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -396,6 +399,9 @@
       <Filter>include\mongoose</Filter>
     </ClCompile>
     <ClCompile Include="Tcp.cpp">
+      <Filter>comm</Filter>
+    </ClCompile>
+    <ClCompile Include="Udp.cpp">
       <Filter>comm</Filter>
     </ClCompile>
   </ItemGroup>

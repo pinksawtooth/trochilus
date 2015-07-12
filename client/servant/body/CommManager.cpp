@@ -2,6 +2,7 @@
 #include "env/Wow64.h"
 #include "HttpComm.h"
 #include "TcpComm.h"
+#include "UdpComm.h"
 #include "common.h"
 #include "Manager.h"
 #include "CommManager.h"
@@ -26,6 +27,7 @@ BOOL CommManager::Init()
 	m_commList[COMMNAME_HTTP] = new HttpComm;
 	m_commList[COMMNAME_HTTPS] = new HttpComm(TRUE);
 	m_commList[COMMNAME_TCP] = new TcpComm;
+	m_commList[COMMNAME_UDP] = new UdpComm;
 
 	m_hExitEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 	if (! m_hExitEvent.IsValid())
@@ -202,6 +204,11 @@ BOOL CommManager::Str2Commname( LPCTSTR str, COMM_NAME& commName ) const
 	{
 		commName = COMMNAME_TCP;
 	}
+	else if (_tcscmp(str, _T("udp")) == 0)
+	{
+		commName = COMMNAME_UDP;
+	}
+
 
 	return (COMMNAME_MAX != commName);
 }
@@ -218,6 +225,9 @@ BOOL CommManager::Commname2Str( COMM_NAME commName, tstring& str ) const
 		break;
 	case COMMNAME_TCP:
 		str = _T("tcp");
+		break;
+	case COMMNAME_UDP:
+		str = _T("udp");
 		break;
 	default:
 		str = _T("invalid");

@@ -28,9 +28,6 @@
     <Filter Include="comm\http">
       <UniqueIdentifier>{60dd0ce9-2ec6-4d46-a40d-69346d849108}</UniqueIdentifier>
     </Filter>
-    <Filter Include="comm\dns">
-      <UniqueIdentifier>{e8ce96c7-452b-4c91-96d3-0bb43cf0cb4f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="module">
       <UniqueIdentifier>{59a90d9f-b3ee-45b0-9a74-1c16c68c0737}</UniqueIdentifier>
     </Filter>
@@ -66,6 +63,9 @@
     </Filter>
     <Filter Include="comm\tcp">
       <UniqueIdentifier>{eba6ed8f-e10d-4396-8492-251f66aabc0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="comm\udp">
+      <UniqueIdentifier>{733f9141-9f46-4a37-9272-b68b1dfec55e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -130,9 +130,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\common\BinNames.h">
       <Filter>global_common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\common\DnsResolver.h">
-      <Filter>comm\dns</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\common\CutupProtocol.h">
       <Filter>global_common</Filter>
@@ -200,6 +197,9 @@
     <ClInclude Include="..\..\..\base\include\winhttp\http.h">
       <Filter>comm\http</Filter>
     </ClInclude>
+    <ClInclude Include="UdpComm.h">
+      <Filter>comm\udp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -234,9 +234,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\base\include\file\MyFile.cpp">
       <Filter>include\file</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\common\DnsResolver.cpp">
-      <Filter>comm\dns</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\common\CutupProtocol.cpp">
       <Filter>global_common</Filter>
@@ -285,6 +282,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\base\include\winhttp\http.cpp">
       <Filter>comm\http</Filter>
+    </ClCompile>
+    <ClCompile Include="UdpComm.cpp">
+      <Filter>comm\udp</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -34,7 +34,7 @@ BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 	if (iRecv < 0)
 	{
-		errorLog(_T("recv http failed WE%d"), ::WSAGetLastError());
+		errorLog(_T("recv tcp failed WE%d"), ::WSAGetLastError());
 	}
 
 	//¸´ÖÆÊý¾Ý

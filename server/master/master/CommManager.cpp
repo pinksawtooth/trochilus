@@ -9,6 +9,7 @@
 #include "Tcp.h"
 #include "DnsResolver.h"
 #include "mongoose/mongoose.h"
+#include "Udp.h"
 
 #pragma comment(lib, "libeay32.lib")
 #pragma comment(lib, "ssleay32.lib")
@@ -28,6 +29,8 @@ BOOL CommManager::Init()
 {
 	WSAData wsaData = {0};
 	::WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+	UDT::startup();
 
 	if (! m_cp.Init())
 	{
@@ -143,7 +146,7 @@ int CommManager::AddCommService(int port,int name)
 
 			info.lpParameter1 = server;
 			info.lpParameter2 = (LPVOID)tid;
-			info.nCommName = COMMNAME_HTTP;
+			info.nCommName = COMMNAME_HTTPS;
 
 			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
 
@@ -151,24 +154,25 @@ int CommManager::AddCommService(int port,int name)
 
 			break;
 		}
-// 	case COMMNAME_DNS:
-// 		{
-// 			UdpServer* DnsServer = new UdpServer;
-// 			DnsServer->Init(UdpMsgHandler,this);
-// 
-// 			if (! DnsServer->Start(port))
-// 			{
-// 				delete DnsServer;
-// 				return 0;
-// 			}
-// 
-// 			info.lpParameter = DnsServer;
-// 			info.nCommName = COMMNAME_DNS;
-// 
-// 			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
-// 
-// 			break;
-// 		}
+	case COMMNAME_UDP:
+		{
+			CUdp *udp = new CUdp;
+			udp->Init();
+			if (!udp->Start(port,UdpMsgHandler))
+			{
+				delete udp;
+				break;
+			}
+
+			info.nCommName = COMMNAME_UDP;
+			info.lpParameter1 = udp;
+
+			m_commMap.insert(MAKE_PAIR(COMM_MAP,serial,info));
+
+			ret = serial;
+
+			break;
+		}
 	case COMMNAME_TCP:
 		{
 			CTcp *tcp = new CTcp;
@@ -209,6 +213,24 @@ BOOL CommManager::DeleteCommService(int serialid)
 			{
 				TerminateThread(info.lpParameter2,0);
 				mg_destroy_server((mg_server**)&info.lpParameter1);
+
+				m_commMap.erase(it);
+
+				break;
+			}
+		case COMMNAME_HTTPS:
+			{
+				TerminateThread(info.lpParameter2,0);
+				mg_destroy_server((mg_server**)&info.lpParameter1);
+
+				m_commMap.erase(it);
+
+				break;
+			}
+		case COMMNAME_UDP:
+			{
+				CUdp *udp = (CUdp *)info.lpParameter1;
+				udp->Stop();
 
 				m_commMap.erase(it);
 
@@ -466,6 +488,14 @@ void CommManager::HandleMsgByMsgHandler( MSGID msgid, const CommData& commData )
 		}
 	}
 }
+
+BOOL CommManager::UdpMsgHandler( LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender )
+{
+	BOOL bValidData = FALSE;
+
+	return CommManager::GetInstanceRef().HandleMessageAndReply(sin,data , size, COMMNAME_UDP, bValidData, UDP_COMM_REPLY_MAXSIZE, toSender);
+}
+
 BOOL CommManager::TcpMsgHandler( LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender )
 {
 	BOOL bValidData = FALSE;

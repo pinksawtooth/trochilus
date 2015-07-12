@@ -97,7 +97,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>body.def</ModuleDefinitionFile>
       <ImportLibrary>..\..\libsD\$(TargetName).lib</ImportLibrary>
-      <AdditionalLibraryDirectories>..\..\libsD\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\libsD\;..\..\..\base\lib\x86\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -137,7 +137,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>body.def</ModuleDefinitionFile>
       <ImportLibrary>..\..\libs\$(TargetName).lib</ImportLibrary>
-      <AdditionalLibraryDirectories>..\..\libs\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\libs\;..\..\..\base\lib\x86\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -182,7 +182,6 @@
     <ClInclude Include="..\..\..\common\CommonHeader.h" />
     <ClInclude Include="..\..\..\common\CutupProtocol.h" />
     <ClInclude Include="..\..\..\common\CutupProtocolStructs.h" />
-    <ClInclude Include="..\..\..\common\DnsResolver.h" />
     <ClInclude Include="..\..\..\common\CommNames.h" />
     <ClInclude Include="..\..\..\common\FileParser.h" />
     <ClInclude Include="..\..\..\common\MessageDefines.h" />
@@ -207,6 +206,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TcpComm.h" />
+    <ClInclude Include="UdpComm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\base\include\destruction\SelfDestruction.cpp" />
@@ -220,7 +220,6 @@
     <ClCompile Include="..\..\..\base\include\winhttp\http.cpp" />
     <ClCompile Include="..\..\..\common\CommData.cpp" />
     <ClCompile Include="..\..\..\common\CutupProtocol.cpp" />
-    <ClCompile Include="..\..\..\common\DnsResolver.cpp" />
     <ClCompile Include="..\..\..\common\FileParser.cpp" />
     <ClCompile Include="CmdRedirector.cpp" />
     <ClCompile Include="CommManager.cpp" />
@@ -242,6 +241,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TcpComm.cpp" />
+    <ClCompile Include="UdpComm.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -6,8 +6,6 @@
 
 typedef BOOL (*tcpHandler)(LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender);
 
-typedef std::vector<SOCKET> VecSocket;
-
 typedef struct
 {
 	SOCKET s;
@@ -22,6 +20,8 @@ class CTcp
 public:
 	CTcp(void);
 	~CTcp(void);
+
+	typedef std::vector<SOCKET> VecSocket;
 
 	void Init();
 	bool Start(int port , tcpHandler handler);
