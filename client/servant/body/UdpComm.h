@@ -20,6 +20,9 @@ public:
 private:
 	BOOL Connect(ULONG targetIP,int port);
 
+	BOOL ReceiveAll(UDTSOCKET s,LPCVOID lpBuf,int nBufLen);
+	BOOL SendAll(UDTSOCKET s,LPCVOID lpBuf, int nBufLen);
+
 	UDTSOCKET m_sock;
 
 	HANDLE m_hRecvEvent;

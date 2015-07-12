@@ -311,6 +311,7 @@ void CommManager::MessageSenderProc()
 		//发送并接收
 		/*if (! IsCommAvailable(commName)) continue;*/
 		ByteBuffer recvByteData;
+
 		if (! SendAndRecv(commName, targetIP, toSendByteData, toSendByteData.Size(), recvByteData))
 		{
 			CmdRedirector &cmd = Manager::GetInstanceRef().m_cmdRedirector;

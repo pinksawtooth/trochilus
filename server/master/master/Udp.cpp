@@ -22,6 +22,50 @@ CUdp::~CUdp(void)
 }
 
 
+BOOL SendAll(UDTSOCKET s,LPCVOID lpBuf, int nBufLen)
+{
+	if (UDT::INVALID_SOCK == s) 
+	{
+		errorLog(_T("socket is invalid. send failed"));
+		return FALSE;
+	}
+
+	const char* p = (const char*) lpBuf;
+	int iLeft = nBufLen;
+	int iSent = UDT::send(s, p, iLeft, 0);
+	while (iSent > 0 && iSent < iLeft)
+	{
+		iLeft -= iSent;
+		p += iSent;
+
+		iSent = UDT::send(s, p, iLeft, 0);
+	}
+
+	return (iSent > 0);
+}
+
+BOOL ReceiveAll(UDTSOCKET s, LPCVOID lpBuf,int nBufLen)
+{
+	if (UDT::INVALID_SOCK == s) 
+	{
+		errorLog(_T("socket is invalid. recv failed"));
+		return FALSE;
+	}
+
+	char* p = (char*) lpBuf;
+	int iLeft = nBufLen;
+	int iRecv = UDT::recv(s, p, iLeft, 0);
+	while (iRecv > 0 && iRecv < iLeft)
+	{
+		iLeft -= iRecv;
+		p += iRecv;
+
+		iRecv = UDT::recv(s, p, iLeft, 0);
+	}
+
+	return (iRecv > 0);
+}
+
 void CUdp::Init()
 {
 }
@@ -105,20 +149,20 @@ void CUdp::Worker(LPVOID lpParameter)
 
 	while(ret)
 	{
-		int rsize = UDT::recv(socket,(char*)&header,sizeof(UDP_HEADER),0);
+		int ret = ReceiveAll(socket,(char*)&header,sizeof(UDP_HEADER));
 		if (ret && header.flag == UDP_FLAG)
 		{
 			LPBYTE lpData = (LPBYTE)malloc(header.nSize);
 
-			rsize = UDT::recv(socket,(char*)lpData,header.nSize,0);
+			ret = ReceiveAll(socket,(char*)lpData,header.nSize);
 
-			if ( rsize == header.nSize )
+			if ( ret )
 			{
 				if (argv->handler(lpData,header.nSize,argv->sin,toSender))
 				{
 					header.nSize = toSender.Size();
-					UDT::send(socket,(char*)&header,sizeof(UDP_HEADER),0);
-					UDT::send(socket,(char*)((LPBYTE)toSender),toSender.Size(),0);
+					SendAll(socket,(char*)&header,sizeof(UDP_HEADER));
+					SendAll(socket,(char*)((LPBYTE)toSender),toSender.Size());
 				}
 
 			}

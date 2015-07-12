@@ -151,6 +151,8 @@ void CGeneratorDlg::InitDlgEdit()
 	m_DefaultComm.SetItemData(1,COMMNAME_HTTPS);
 	m_DefaultComm.InsertString(2,_T("TCP"));
 	m_DefaultComm.SetItemData(2,COMMNAME_TCP);
+	m_DefaultComm.InsertString(2,_T("UDP"));
+	m_DefaultComm.SetItemData(2,COMMNAME_UDP);
 	
 
 	m_DefaultComm.SetCurSel(config.commType);
