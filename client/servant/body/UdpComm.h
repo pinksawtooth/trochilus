@@ -25,6 +25,8 @@ private:
 
 	UDTSOCKET m_sock;
 
+	BOOL m_isConnected;
+
 	HANDLE m_hRecvEvent;
 };
 

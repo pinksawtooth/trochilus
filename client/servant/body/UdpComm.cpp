@@ -2,6 +2,8 @@
 #include <WS2tcpip.h>
 #include "UdpComm.h"
 #include "UdpDefines.h"
+#include <string>
+
 
 #ifdef _DEBUG
 #pragma comment(lib,"udtd.lib")
@@ -9,7 +11,7 @@
 #pragma comment(lib,"udt.lib")
 #endif
 
-UdpComm::UdpComm(void)
+UdpComm::UdpComm(void):m_isConnected(FALSE)
 {
 	UDT::startup();
 }
@@ -72,20 +74,13 @@ BOOL UdpComm::Send( ULONG targetIP, const LPBYTE pData, DWORD dwSize )
 	sendByteBuffer.Alloc(dwSize);
 	memcpy((LPBYTE)sendByteBuffer, pData, dwSize);
 
-	BOOL bSentOK = SendAll(m_sock,(LPBYTE)sendByteBuffer,sendByteBuffer.Size());
+	if ( !m_isConnected )
+		m_isConnected = Connect(targetIP, g_ConfigInfo.nPort);
 
-	if ( !bSentOK )
-	{
-		if ( Connect(targetIP, g_ConfigInfo.nPort))
-		{
-			bSentOK = SendAll(m_sock,(LPBYTE)sendByteBuffer,sendByteBuffer.Size());
-		}
-		else
-		{
-			debugLog(_T("connect %x %s failed"), targetIP, a2t(inet_ntoa(addr)));
-		}
-	}
-	return bSentOK;
+	if ( m_isConnected )
+		m_isConnected = SendAll(m_sock,(LPBYTE)sendByteBuffer,sendByteBuffer.Size());
+
+	return m_isConnected;
 }
 
 
@@ -107,7 +102,7 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 		if ( !ReceiveAll(m_sock,(char*)&recvHead, sizeof(UDP_HEADER)))
 		{
-			errorLog(_T("recv udp failed WE%d"), ::WSAGetLastError());
+			m_isConnected = FALSE;
 			break;
 		}
 
@@ -117,6 +112,7 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 		if (! ReceiveAll(m_sock,(LPBYTE)buffer,recvHead.nSize))
 		{
+			m_isConnected = FALSE;
 			errorLog(_T("recv udp failed WE%d"), ::WSAGetLastError());
 			break;
 		}
@@ -132,7 +128,7 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 
 
-	return TRUE;
+	return ret;
 }
 
 BOOL UdpComm::Connect( ULONG targetIP,int port )
@@ -148,7 +144,7 @@ BOOL UdpComm::Connect( ULONG targetIP,int port )
 
 	IN_ADDR addr;
 	addr.S_un.S_addr = targetIP;
-	char* ip = inet_ntoa(addr);
+	LPCSTR ip = std::string(inet_ntoa(addr)).c_str();
 
 	char szPort[255] = {0};
 	sprintf_s(szPort,"%d",port);
@@ -161,7 +157,6 @@ BOOL UdpComm::Connect( ULONG targetIP,int port )
 
 	if (UDT::ERROR == UDT::connect(m_sock, peer->ai_addr, peer->ai_addrlen))
 	{
-		UDT::close(m_sock);
 		return FALSE;
 	}
 
