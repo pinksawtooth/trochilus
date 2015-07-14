@@ -1,12 +1,12 @@
 #pragma once
-#include "udt/udt.h"
+#include "vtcp/vtcp.h"
 #include "UdpDefines.h"
 
 typedef BOOL (*udpHandler)(LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender);
 
 typedef struct
 {
-	UDTSOCKET s;
+	VTCP_SOCKET s;
 	SOCKADDR_IN sin;
 	udpHandler handler;
 	LPVOID lpParameter;
@@ -19,7 +19,7 @@ public:
 	CUdp(void);
 	~CUdp(void);
 	
-	typedef std::vector<UDTSOCKET> VecSocket;
+	typedef std::vector<VTCP_SOCKET> VecSocket;
 
 	void Init();
 	BOOL Start(int port, udpHandler handler);
@@ -27,7 +27,7 @@ public:
 
 private:
 
-	UDTSOCKET m_sock;
+	VTCP_SOCKET m_sock;
 
 	udpHandler m_handler;
 

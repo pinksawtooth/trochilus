@@ -3,17 +3,12 @@
 #include <string>
 
 #include <WinSock2.h>
-#include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
-
-#ifdef _DEBUG
-#pragma comment(lib,"udtd.lib")
-#else
-#pragma comment(lib,"udt.lib")
-#endif
+#pragma comment(lib,"vtcp.lib")
 
 CUdp::CUdp(void)
 {
+	vtcp_startup();
 }
 
 
@@ -22,31 +17,31 @@ CUdp::~CUdp(void)
 }
 
 
-BOOL SendAll(UDTSOCKET s,LPCVOID lpBuf, int nBufLen)
+BOOL SendAll(VTCP_SOCKET s,LPCVOID lpBuf, int nBufLen)
 {
-	if (UDT::INVALID_SOCK == s) 
+	if (VTCP_INVALID_SOCKET == s) 
 	{
 		errorLog(_T("socket is invalid. send failed"));
 		return FALSE;
 	}
 
-	const char* p = (const char*) lpBuf;
+	char* p = (char*) lpBuf;
 	int iLeft = nBufLen;
-	int iSent = UDT::send(s, p, iLeft, 0);
+	int iSent = vtcp_send(s, p, iLeft, 0);
 	while (iSent > 0 && iSent < iLeft)
 	{
 		iLeft -= iSent;
 		p += iSent;
 
-		iSent = UDT::send(s, p, iLeft, 0);
+		iSent = vtcp_send(s, p, iLeft, 0);
 	}
 
 	return (iSent > 0);
 }
 
-BOOL ReceiveAll(UDTSOCKET s, LPCVOID lpBuf,int nBufLen)
+BOOL ReceiveAll(VTCP_SOCKET s, LPCVOID lpBuf,int nBufLen)
 {
-	if (UDT::INVALID_SOCK == s) 
+	if (VTCP_INVALID_SOCKET == s) 
 	{
 		errorLog(_T("socket is invalid. recv failed"));
 		return FALSE;
@@ -54,13 +49,13 @@ BOOL ReceiveAll(UDTSOCKET s, LPCVOID lpBuf,int nBufLen)
 
 	char* p = (char*) lpBuf;
 	int iLeft = nBufLen;
-	int iRecv = UDT::recv(s, p, iLeft, 0);
+	int iRecv = vtcp_recv(s, p, iLeft, 0);
 	while (iRecv > 0 && iRecv < iLeft)
 	{
 		iLeft -= iRecv;
 		p += iRecv;
 
-		iRecv = UDT::recv(s, p, iLeft, 0);
+		iRecv = vtcp_recv(s, p, iLeft, 0);
 	}
 
 	return (iRecv > 0);
@@ -75,13 +70,11 @@ BOOL CUdp::Start(int port, udpHandler handler)
 {
 	bool ret = FALSE;
 
-	addrinfo hints;
-	addrinfo* res;
+	SOCKADDR_IN hints;
 
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_flags = AI_PASSIVE;
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
+	memset(&hints, 0, sizeof(SOCKADDR_IN));
+	hints.sin_family = AF_INET;
+	hints.sin_port = htons(port);
 
 	char szPort[255] = {0};
 
@@ -91,15 +84,9 @@ BOOL CUdp::Start(int port, udpHandler handler)
 
 	do 
 	{
-		if (0 != getaddrinfo(NULL, service.c_str(), &hints, &res))
-			break;
+		m_sock = vtcp_socket(AF_INET,SOCK_DGRAM,0);
 
-		m_sock = UDT::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-
-		int mss = UDP_COMM_REPLY_MAXSIZE * 2;
-		UDT::setsockopt(m_sock, 0, UDT_MSS, &mss, sizeof(int));
-
-		if (UDT::ERROR == UDT::bind(m_sock, res->ai_addr, res->ai_addrlen))
+		if (VTCP_ERROR == vtcp_bind(m_sock, (sockaddr*)&hints, sizeof(hints)))
 			break;
 
 		UDP_ARGV* argv = new UDP_ARGV;
@@ -108,7 +95,7 @@ BOOL CUdp::Start(int port, udpHandler handler)
 		argv->s = m_sock;
 		argv->lpParameter = this;
 
-		UDT::listen(m_sock,25);
+		vtcp_listen(m_sock,25);
 		_beginthread(Listen,0,argv);
 
 		ret = true;
@@ -120,7 +107,7 @@ BOOL CUdp::Start(int port, udpHandler handler)
 
 void CUdp::Stop()
 {
-	UDT::close(m_sock);
+	vtcp_close(m_sock);
 
 	m_cs.Enter();
 
@@ -128,7 +115,7 @@ void CUdp::Stop()
 
 	for (; it != m_vecSock.end(); it++)
 	{
-		UDT::close(*it);
+		vtcp_close(*it);
 	}
 
 	m_cs.Leave();
@@ -141,7 +128,7 @@ void CUdp::Worker(LPVOID lpParameter)
 
 	UDP_HEADER header;
 
-	UDTSOCKET socket = argv->s;
+	VTCP_SOCKET socket = argv->s;
 
 	BOOL ret = TRUE;
 
@@ -174,7 +161,7 @@ void CUdp::Worker(LPVOID lpParameter)
 		}
 	}
 
-	UDT::close(socket);
+	vtcp_close(socket);
 
 	delete lpParameter;
 }
@@ -184,16 +171,16 @@ void CUdp::ListenProc( UDP_ARGV *argv )
 	SOCKADDR_IN sin;
 	int addrlen = sizeof(sin);
 
-	UDTSOCKET fhandle;
+	VTCP_SOCKET fhandle;
 
 	while (true)
 	{
-		if (UDT::INVALID_SOCK == (fhandle = UDT::accept(m_sock, (sockaddr *)&sin, &addrlen)))
+		if (VTCP_INVALID_SOCKET == (fhandle = vtcp_accept(m_sock, (sockaddr *)&sin, &addrlen)))
 			break;
 
-		m_cs.Enter();
-		m_vecSock.push_back(fhandle);
-		m_cs.Leave();
+// 		m_cs.Enter();
+// 		m_vecSock.push_back(fhandle);
+// 		m_cs.Leave();
 
 		UDP_ARGV * client_argv = new UDP_ARGV;
 
@@ -206,7 +193,7 @@ void CUdp::ListenProc( UDP_ARGV *argv )
 
 	}
 
-	UDT::close(m_sock);
+	vtcp_close(m_sock);
 
 	delete argv;
 }

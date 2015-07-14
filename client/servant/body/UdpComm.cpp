@@ -3,17 +3,21 @@
 #include "UdpComm.h"
 #include "UdpDefines.h"
 #include <string>
-
-
-#ifdef _DEBUG
-#pragma comment(lib,"udtd.lib")
-#else
-#pragma comment(lib,"udt.lib")
-#endif
+#include "resource.h"
+#include "file/MyFile.h"
+#include "VtcpBinary.h"
 
 UdpComm::UdpComm(void):m_isConnected(FALSE)
 {
-	UDT::startup();
+	m_vtcp.MemLoadLibrary(mem_vtcp,sizeof(mem_vtcp));
+
+	m_vsend = (_vtcp_send)m_vtcp.MemGetProcAddress("vtcp_send");
+	m_vrecv = (_vtcp_recv)m_vtcp.MemGetProcAddress("vtcp_recv");
+	m_vsocket = (_vtcp_socket)m_vtcp.MemGetProcAddress("vtcp_socket");
+	m_vconnect = (_vtcp_connect)m_vtcp.MemGetProcAddress("vtcp_connect");
+	m_vstartup = (_vtcp_startup)m_vtcp.MemGetProcAddress("vtcp_startup");
+
+	m_vstartup();
 }
 
 UdpComm::~UdpComm(void)
@@ -21,31 +25,31 @@ UdpComm::~UdpComm(void)
 	CloseHandle(m_hRecvEvent);
 }
 
-BOOL UdpComm::SendAll(UDTSOCKET s,LPCVOID lpBuf, int nBufLen)
+BOOL UdpComm::SendAll(VTCP_SOCKET s,LPCVOID lpBuf, int nBufLen)
 {
-	if (UDT::INVALID_SOCK == s) 
+	if (VTCP_INVALID_SOCKET == s) 
 	{
 		errorLog(_T("socket is invalid. send failed"));
 		return FALSE;
 	}
 
-	const char* p = (const char*) lpBuf;
+	char* p = (char*) lpBuf;
 	int iLeft = nBufLen;
-	int iSent = UDT::send(s, p, iLeft, 0);
+	int iSent = m_vsend(s, p, iLeft, 0);
 	while (iSent > 0 && iSent < iLeft)
 	{
 		iLeft -= iSent;
 		p += iSent;
 
-		iSent = UDT::send(s, p, iLeft, 0);
+		iSent = m_vsend(s, p, iLeft, 0);
 	}
 
 	return (iSent > 0);
 }
 
-BOOL UdpComm::ReceiveAll(UDTSOCKET s, LPCVOID lpBuf,int nBufLen)
+BOOL UdpComm::ReceiveAll(VTCP_SOCKET s, LPCVOID lpBuf,int nBufLen)
 {
-	if (UDT::INVALID_SOCK == s) 
+	if (VTCP_INVALID_SOCKET == s) 
 	{
 		errorLog(_T("socket is invalid. recv failed"));
 		return FALSE;
@@ -53,13 +57,13 @@ BOOL UdpComm::ReceiveAll(UDTSOCKET s, LPCVOID lpBuf,int nBufLen)
 
 	char* p = (char*) lpBuf;
 	int iLeft = nBufLen;
-	int iRecv = UDT::recv(s, p, iLeft, 0);
+	int iRecv = m_vrecv(s, p, iLeft, 0);
 	while (iRecv > 0 && iRecv < iLeft)
 	{
 		iLeft -= iRecv;
 		p += iRecv;
 
-		iRecv = UDT::recv(s, p, iLeft, 0);
+		iRecv = m_vrecv(s, p, iLeft, 0);
 	}
 
 	return (iRecv > 0);
@@ -133,29 +137,16 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 BOOL UdpComm::Connect( ULONG targetIP,int port )
 {
-	struct addrinfo hints, *peer;
+	SOCKADDR_IN hints;
 
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_flags = AI_PASSIVE;
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
+	memset(&hints, 0, sizeof(SOCKADDR_IN));
+	hints.sin_family = AF_INET;
+	hints.sin_addr.s_addr = targetIP;
+	hints.sin_port = htons(port);
 
-	m_sock = UDT::socket(hints.ai_family, hints.ai_socktype, hints.ai_protocol);
+	m_sock = m_vsocket(AF_INET,SOCK_DGRAM,0);
 
-	IN_ADDR addr;
-	addr.S_un.S_addr = targetIP;
-	LPCSTR ip = std::string(inet_ntoa(addr)).c_str();
-
-	char szPort[255] = {0};
-	sprintf_s(szPort,"%d",port);
-
-	if (0 != getaddrinfo(ip, szPort , &hints, &peer))
-	{
-		errorLog(_T("incorrect server/peer address. "));
-		return FALSE;
-	}
-
-	if (UDT::ERROR == UDT::connect(m_sock, peer->ai_addr, peer->ai_addrlen))
+	if (VTCP_ERROR == m_vconnect(m_sock,(sockaddr*)&hints,sizeof(hints)))
 	{
 		return FALSE;
 	}

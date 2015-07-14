@@ -72,6 +72,7 @@
     <None Include="body.def">
       <Filter>main</Filter>
     </None>
+    <None Include="res\vtcp.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -200,6 +201,12 @@
     <ClInclude Include="UdpComm.h">
       <Filter>comm\udp</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VtcpBinary.h">
+      <Filter>comm\udp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -286,5 +293,10 @@
     <ClCompile Include="UdpComm.cpp">
       <Filter>comm\udp</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="body.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

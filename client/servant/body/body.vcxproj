@@ -163,6 +163,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="body.def" />
+    <None Include="res\vtcp.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\base\include\AutoCleanup.h" />
@@ -190,6 +191,7 @@
     <ClInclude Include="CmdRedirector.h" />
     <ClInclude Include="HttpComm.h" />
     <ClInclude Include="Redirector.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="rpc\advapi32.h" />
     <ClInclude Include="rpc\RpcServiceManager.h" />
     <ClInclude Include="rpc\services.h" />
@@ -207,6 +209,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TcpComm.h" />
     <ClInclude Include="UdpComm.h" />
+    <ClInclude Include="VtcpBinary.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\base\include\destruction\SelfDestruction.cpp" />
@@ -242,6 +245,9 @@
     </ClCompile>
     <ClCompile Include="TcpComm.cpp" />
     <ClCompile Include="UdpComm.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="body.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

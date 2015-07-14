@@ -30,8 +30,6 @@ BOOL CommManager::Init()
 	WSAData wsaData = {0};
 	::WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-	UDT::startup();
-
 	if (! m_cp.Init())
 	{
 		errorLog(_T("init cutup protocol failed"));
