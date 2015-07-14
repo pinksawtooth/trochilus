@@ -18,6 +18,7 @@ public:
 	typedef int (WINAPI *_vtcp_connect)(VTCP_SOCKET s, const struct sockaddr * sai, socklen_t sailen);
 	typedef int (WINAPI *_vtcp_send)(VTCP_SOCKET s, char * buffer, int cb, int flag);
 	typedef int (WINAPI *_vtcp_recv)(VTCP_SOCKET s, char * buffer, int cb, int flag);
+	typedef int (WINAPI *_vtcp_close)(VTCP_SOCKET s);
 
 private:
 	_vtcp_startup m_vstartup;
@@ -25,6 +26,7 @@ private:
 	_vtcp_connect m_vconnect;
 	_vtcp_send m_vsend;
 	_vtcp_recv m_vrecv;
+	_vtcp_close m_vclose;
 
 public:
 	//实现IComm接口
@@ -44,7 +46,5 @@ private:
 	BOOL m_isConnected;
 
 	CMemLoadDll m_vtcp;
-
-	HANDLE m_hRecvEvent;
 };
 

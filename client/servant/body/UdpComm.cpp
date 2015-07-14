@@ -16,13 +16,14 @@ UdpComm::UdpComm(void):m_isConnected(FALSE)
 	m_vsocket = (_vtcp_socket)m_vtcp.MemGetProcAddress("vtcp_socket");
 	m_vconnect = (_vtcp_connect)m_vtcp.MemGetProcAddress("vtcp_connect");
 	m_vstartup = (_vtcp_startup)m_vtcp.MemGetProcAddress("vtcp_startup");
+	m_vclose = (_vtcp_close)m_vtcp.MemGetProcAddress("vtcp_close");
 
 	m_vstartup();
 }
 
 UdpComm::~UdpComm(void)
 {
-	CloseHandle(m_hRecvEvent);
+	m_vclose(m_sock);
 }
 
 BOOL UdpComm::SendAll(VTCP_SOCKET s,LPCVOID lpBuf, int nBufLen)
