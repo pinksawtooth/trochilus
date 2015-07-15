@@ -7,7 +7,7 @@ Coded in C++ (using VS2010)
 
 Features
 ---
-* Support TCP(RSA),UDP(RSA),HTTP,HTTPS
+* Support TCP,UDP,HTTP,HTTPS
 * Serilize Protocol
 * Support Non-UAC
 * Shellcode Extension
