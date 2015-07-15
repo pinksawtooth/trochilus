@@ -80,8 +80,8 @@ void WriteDebugLog(DWORD dwLastError, LPCSTR file, int codeLine, LOG_LEVEL level
 // #ifdef ODS_OUTPUT_STD
 	printf("%s\n", t2a(logContent));
 // #endif
-// #ifdef ODS_OUTPUT_FILE
+#ifdef ODS_OUTPUT_FILE
  	OutputFile(logContent);
-/*#endif*/
+#endif
 	OutputDebugString(logContent);
 }

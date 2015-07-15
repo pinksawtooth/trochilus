@@ -166,6 +166,7 @@ void CUdp::WorkerProc(LPVOID lpParameter)
 		while(ret)
 		{
 			int ret = ReceiveAll(socket,(char*)&header,sizeof(UDP_HEADER));
+
 			if (ret && header.flag == UDP_FLAG)
 			{
 				LPBYTE lpData = (LPBYTE)malloc(header.nSize);
@@ -187,7 +188,6 @@ void CUdp::WorkerProc(LPVOID lpParameter)
 
 						SendAll(socket,(char*)((LPBYTE)toSender),toSender.Size());
 					}
-
 				}
 				free(lpData);
 			}
