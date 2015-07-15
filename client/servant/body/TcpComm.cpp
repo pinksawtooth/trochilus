@@ -7,6 +7,10 @@ TcpComm::TcpComm(BOOL isSecure):
 m_xorKey1(0),
 m_xorKey2(0)
 {
+	srand(GetTickCount());
+	m_xorKey1 = (BYTE)(rand() % 255);
+	m_xorKey2 = (BYTE)(rand() % 255);
+
 	m_isSecure = isSecure;
 }
 
