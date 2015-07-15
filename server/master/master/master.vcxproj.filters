@@ -67,6 +67,9 @@
     <Filter Include="include\mongoose">
       <UniqueIdentifier>{a937e001-c3a5-446e-bd28-6c42d7d263f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\rsa">
+      <UniqueIdentifier>{fa7e5943-1059-41c7-a0b9-41c99b75dd49}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -303,6 +306,9 @@
     <ClInclude Include="Udp.h">
       <Filter>comm</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\base\include\rsa\librsa.h">
+      <Filter>include\rsa</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -403,6 +409,9 @@
     </ClCompile>
     <ClCompile Include="Udp.cpp">
       <Filter>comm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\base\include\rsa\librsa.cpp">
+      <Filter>include\rsa</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

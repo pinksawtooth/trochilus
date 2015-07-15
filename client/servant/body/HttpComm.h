@@ -7,7 +7,7 @@
 class HttpComm : public IComm
 {
 public:
-	HttpComm(BOOL isSSL = FALSE);
+	HttpComm(BOOL isSecure = FALSE);
 	~HttpComm();
 	//实现IComm接口
 	virtual COMM_NAME GetName() { if (m_ssl) return COMMNAME_HTTPS; else COMMNAME_HTTP; };

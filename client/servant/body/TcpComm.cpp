@@ -1,6 +1,19 @@
 #include "stdafx.h"
 #include "socket/MySocket.h"
 #include "TcpComm.h"
+#include "../shell/Exports.h"
+
+TcpComm::TcpComm(BOOL isSecure):
+m_xorKey1(0),
+m_xorKey2(0)
+{
+	m_isSecure = isSecure;
+}
+
+TcpComm::~TcpComm()
+{
+
+}
 
 BOOL TcpComm::Send( ULONG targetIP, const LPBYTE pData, DWORD dwSize )
 {
@@ -12,37 +25,54 @@ BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 	TCP_HEADER sendHead;
 	sendHead.flag = TCP_FLAG;
 	sendHead.nSize = dwSendSize;
+	BOOL ret  = FALSE;
 
-	if (! Send(m_sock, targetIP, (PBYTE)&sendHead, sizeof(TCP_HEADER))) return FALSE;
-
-	if (! Send(m_sock, targetIP, pSendData, dwSendSize)) return FALSE;
-
-	TCP_HEADER recvHead = {0};
-
-	int iRecv = m_sock.ReceiveAll((LPBYTE)&recvHead, sizeof(TCP_HEADER));
-	
-	if (iRecv < 0)
+	do 
 	{
-		errorLog(_T("recv http failed WE%d"), ::WSAGetLastError());
-	}
+		ret = Send(m_sock, targetIP, (PBYTE)&sendHead, sizeof(TCP_HEADER));
+
+		if (!ret)
+			break;;
+
+		if (m_isSecure)
+			XFC(pSendData,dwSendSize,pSendData,m_xorKey1,m_xorKey2);
+
+		ret = Send(m_sock, targetIP, pSendData, dwSendSize);
+
+		if (!ret)
+			break;
+
+		TCP_HEADER recvHead = {0};
+
+		ret = m_sock.ReceiveAll((LPBYTE)&recvHead, sizeof(TCP_HEADER));
+
+		if ( !ret )
+			break;
 
 
-	ByteBuffer buffer;
-	buffer.Alloc(recvHead.nSize);
+		ByteBuffer buffer;
+		buffer.Alloc(recvHead.nSize);
+		ret = m_sock.ReceiveAll(buffer,recvHead.nSize);
 
-	iRecv = m_sock.ReceiveAll(buffer,recvHead.nSize);
+		if (!ret)
+		{
+			buffer.Free();
+			break;
+		}
 
-	if (iRecv < 0)
-	{
-		errorLog(_T("recv tcp failed WE%d"), ::WSAGetLastError());
-	}
+		//复制数据
+		*pRecvData = Alloc(recvHead.nSize);
+		memcpy(*pRecvData, (LPBYTE)buffer, recvHead.nSize);
+		dwRecvSize =  recvHead.nSize;
 
-	//复制数据
-	*pRecvData = Alloc(recvHead.nSize);
-	memcpy(*pRecvData, (LPBYTE)buffer, recvHead.nSize);
-	dwRecvSize =  recvHead.nSize;
+		if(m_isSecure)
+			XFC(*pRecvData,recvHead.nSize,*pRecvData,m_xorKey1,m_xorKey2);
+
+		buffer.Free();
+
+	} while (FALSE);
 	
-	return TRUE;
+	return ret;
 }
 
 BOOL TcpComm::Connect( ULONG targetIP, MySocket& sock )
@@ -59,16 +89,22 @@ BOOL TcpComm::Connect( ULONG targetIP, MySocket& sock )
 		errorLog(_T("connect [%u] failed"), targetIP);
 		return FALSE;
 	}
+	if (m_isSecure)
+	{
+		int key1 = 0;
+		int key2 = 0;
 
-	int value = 65535;
-	if (0 != setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char*)&value, sizeof(value)))
-	{
-		errorLog(_T("setsockopt rcvbuf failed.WE%d"), ::WSAGetLastError());
-	}
-	value = 65535;
-	if (0 != setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char*)&value, sizeof(value)))
-	{
-		errorLog(_T("setsockopt sndbuf failed.WE%d"), ::WSAGetLastError());
+		int flag = TCP_FLAG;
+
+		m_sock.SendAll((LPVOID)&flag,sizeof(int));
+
+		m_sock.ReceiveAll(&m_rsaKey,sizeof(RSA::RSA_PUBLIC_KEY));
+
+		RSA::RSAEncrypt((char*)&m_xorKey1,(int*)&key1,m_rsaKey.d,m_rsaKey.n,1);
+		RSA::RSAEncrypt((char*)&m_xorKey2,(int*)&key2,m_rsaKey.d,m_rsaKey.n,1);
+
+		m_sock.SendAll(&key1,sizeof(int));
+		m_sock.SendAll(&key2,sizeof(int));
 	}
 
 	return TRUE;

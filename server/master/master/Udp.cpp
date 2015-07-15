@@ -1,14 +1,25 @@
 #include "StdAfx.h"
 #include "Udp.h"
 #include <string>
+#include "common.h"
 
 #include <WinSock2.h>
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib,"vtcp.lib")
 
-CUdp::CUdp(void)
+CUdp::CUdp(BOOL isSecure):
+m_isSecure(FALSE)
 {
 	vtcp_startup();
+
+	if (isSecure)
+	{
+		srand(GetTickCount());
+
+		RSA::GenRSAKey(&m_myPriKey,&m_myPubKey);
+
+		m_isSecure = isSecure;
+	}
 }
 
 
@@ -108,21 +119,17 @@ BOOL CUdp::Start(int port, udpHandler handler)
 void CUdp::Stop()
 {
 	vtcp_close(m_sock);
-
-	m_cs.Enter();
-
-	VecSocket::iterator it = m_vecSock.begin();
-
-	for (; it != m_vecSock.end(); it++)
-	{
-		vtcp_close(*it);
-	}
-
-	m_cs.Leave();
-
 }
 
 void CUdp::Worker(LPVOID lpParameter)
+{
+	UDP_ARGV *argv = (UDP_ARGV*)lpParameter;
+	CUdp* udp = (CUdp*)argv->lpParameter;
+
+	udp->WorkerProc(lpParameter);
+}
+
+void CUdp::WorkerProc(LPVOID lpParameter)
 {
 	UDP_ARGV *argv = (UDP_ARGV*)lpParameter;
 
@@ -134,32 +141,63 @@ void CUdp::Worker(LPVOID lpParameter)
 
 	ByteBuffer toSender;
 
-	while(ret)
+	do 
 	{
-		int ret = ReceiveAll(socket,(char*)&header,sizeof(UDP_HEADER));
-		if (ret && header.flag == UDP_FLAG)
+		if (m_isSecure)
 		{
-			LPBYTE lpData = (LPBYTE)malloc(header.nSize);
+			int key1 = 0;
+			int key2 = 0;
 
-			ret = ReceiveAll(socket,(char*)lpData,header.nSize);
+			int flag = 0;
 
-			if ( ret )
+			ReceiveAll(socket,&flag,sizeof(int));
+
+			if (flag != UDP_FLAG)
+				break;
+
+			SendAll(socket,&m_myPubKey,sizeof(RSA::RSA_PUBLIC_KEY));
+			ReceiveAll(socket,&key1,sizeof(int));
+			ReceiveAll(socket,&key2,sizeof(int));
+
+			RSA::RSADecrypt((char*)&m_xorKey1,&key1,m_myPriKey.e,m_myPriKey.n,1);
+			RSA::RSADecrypt((char*)&m_xorKey2,&key2,m_myPriKey.e,m_myPriKey.n,1);
+		}
+
+		while(ret)
+		{
+			int ret = ReceiveAll(socket,(char*)&header,sizeof(UDP_HEADER));
+			if (ret && header.flag == UDP_FLAG)
 			{
-				if (argv->handler(lpData,header.nSize,argv->sin,toSender))
-				{
-					header.nSize = toSender.Size();
-					SendAll(socket,(char*)&header,sizeof(UDP_HEADER));
-					SendAll(socket,(char*)((LPBYTE)toSender),toSender.Size());
-				}
+				LPBYTE lpData = (LPBYTE)malloc(header.nSize);
 
+				ret = ReceiveAll(socket,(char*)lpData,header.nSize);
+
+				if (m_isSecure)
+					XorFibonacciCrypt(lpData,header.nSize,lpData,m_xorKey1,m_xorKey2);
+
+				if ( ret )
+				{
+					if (argv->handler(lpData,header.nSize,argv->sin,toSender))
+					{
+						header.nSize = toSender.Size();
+						SendAll(socket,(char*)&header,sizeof(UDP_HEADER));
+
+						if (m_isSecure)
+							XorFibonacciCrypt(toSender,toSender.Size(),toSender,m_xorKey1,m_xorKey2);
+
+						SendAll(socket,(char*)((LPBYTE)toSender),toSender.Size());
+					}
+
+				}
+				free(lpData);
 			}
-			free(lpData);
+			else
+			{
+				break;
+			}
 		}
-		else
-		{
-			break;
-		}
-	}
+
+	} while (FALSE);
 
 	vtcp_close(socket);
 
@@ -177,10 +215,6 @@ void CUdp::ListenProc( UDP_ARGV *argv )
 	{
 		if (VTCP_INVALID_SOCKET == (fhandle = vtcp_accept(m_sock, (sockaddr *)&sin, &addrlen)))
 			break;
-
-// 		m_cs.Enter();
-// 		m_vecSock.push_back(fhandle);
-// 		m_cs.Leave();
 
 		UDP_ARGV * client_argv = new UDP_ARGV;
 

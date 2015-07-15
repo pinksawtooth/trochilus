@@ -7,7 +7,9 @@
 #include "file/MyFile.h"
 #include "VtcpBinary.h"
 
-UdpComm::UdpComm(void):m_isConnected(FALSE)
+UdpComm::UdpComm(BOOL isSecure):m_isConnected(FALSE),
+	m_xorKey1(0),
+	m_xorKey2(0)
 {
 	m_vtcp.MemLoadLibrary(mem_vtcp,sizeof(mem_vtcp));
 
@@ -19,6 +21,15 @@ UdpComm::UdpComm(void):m_isConnected(FALSE)
 	m_vclose = (_vtcp_close)m_vtcp.MemGetProcAddress("vtcp_close");
 
 	m_vstartup();
+
+	if (isSecure)
+	{
+		srand(GetTickCount());
+		m_xorKey1 = (BYTE)(rand() % 255);
+		m_xorKey2 = (BYTE)(rand() % 255);
+
+		m_isSecure = isSecure;
+	}
 }
 
 UdpComm::~UdpComm(void)
@@ -101,6 +112,9 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 	{
 		if (! Send( targetIP, (PBYTE)&sendHead, sizeof(UDP_HEADER))) break;
 
+		if (m_isSecure)
+			XFC(pSendData,dwSendSize,pSendData,m_xorKey1,m_xorKey2);
+
 		if (! Send( targetIP, pSendData, dwSendSize)) break;
 
 		UDP_HEADER recvHead = {0};
@@ -118,7 +132,7 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 		if (! ReceiveAll(m_sock,(LPBYTE)buffer,recvHead.nSize))
 		{
 			m_isConnected = FALSE;
-			errorLog(_T("recv udp failed WE%d"), ::WSAGetLastError());
+			buffer.Free();
 			break;
 		}
 
@@ -126,6 +140,11 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 		*pRecvData = Alloc(recvHead.nSize);
 		memcpy(*pRecvData, (LPBYTE)buffer, recvHead.nSize);
 		dwRecvSize =  recvHead.nSize;
+
+		if(m_isSecure)
+			XFC(*pRecvData,recvHead.nSize,*pRecvData,m_xorKey1,m_xorKey2);
+
+		buffer.Free();
 
 		ret = TRUE;
 
@@ -150,6 +169,24 @@ BOOL UdpComm::Connect( ULONG targetIP,int port )
 	if (VTCP_ERROR == m_vconnect(m_sock,(sockaddr*)&hints,sizeof(hints)))
 	{
 		return FALSE;
+	}
+
+	if (m_isSecure)
+	{
+		int key1 = 0;
+		int key2 = 0;
+
+		int flag = UDP_FLAG;
+
+		SendAll(m_sock,(LPVOID)&flag,sizeof(int));
+
+		ReceiveAll(m_sock,&m_rsaKey,sizeof(RSA::RSA_PUBLIC_KEY));
+
+		RSA::RSAEncrypt((char*)&m_xorKey1,(int*)&key1,m_rsaKey.d,m_rsaKey.n,1);
+		RSA::RSAEncrypt((char*)&m_xorKey2,(int*)&key2,m_rsaKey.d,m_rsaKey.n,1);
+
+		SendAll(m_sock,&key1,sizeof(int));
+		SendAll(m_sock,&key2,sizeof(int));
 	}
 
 	return TRUE;

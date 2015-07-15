@@ -51,8 +51,14 @@ void CListenDlg::InitView()
 	m_protoList.InsertString(2,_T("TCP"));
 	m_protoList.SetItemData(2,COMMNAME_TCP);
 
-	m_protoList.InsertString(3,_T("UDP"));
-	m_protoList.SetItemData(3,COMMNAME_UDP);
+	m_protoList.InsertString(3,_T("TCPS"));
+	m_protoList.SetItemData(3,COMMNAME_TCPS);
+
+	m_protoList.InsertString(4,_T("UDP"));
+	m_protoList.SetItemData(4,COMMNAME_UDP);
+
+	m_protoList.InsertString(5,_T("UDPS"));
+	m_protoList.SetItemData(5,COMMNAME_UDPS);
 
 	m_protoList.SetCurSel(0);
 
@@ -131,9 +137,17 @@ void CListenDlg::OnBnClickedButtonStart()
 	{
 		strProtocol = _T("TCP");
 	}
+	else if (data == COMMNAME_TCPS)
+	{
+		strProtocol = _T("TCPS");
+	}
 	else if (data == COMMNAME_UDP)
 	{
 		strProtocol = _T("UDP");
+	}
+	else if (data == COMMNAME_UDPS)
+	{
+		strProtocol = _T("UDPS");
 	}
 
 	m_listenList.InsertItem(nCount,strProtocol,0);
@@ -217,22 +231,22 @@ void CListenDlg::OnCbnSelchangeComboProto()
 	if(data == COMMNAME_HTTP)
 	{
 		SetDlgItemText(IDC_EDIT_PORT,_T("80"));
-		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(TRUE);
 	}
 	else if(data == COMMNAME_HTTPS)
 	{
 		SetDlgItemText(IDC_EDIT_PORT,_T("443"));
-		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(TRUE);
 	}
 	else if(data == COMMNAME_TCP)
 	{
 		SetDlgItemText(IDC_EDIT_PORT,_T("8082"));
-		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(TRUE);
 	}
 	else if(data == COMMNAME_UDP)
 	{
 		SetDlgItemText(IDC_EDIT_PORT,_T("8082"));
-		GetDlgItem(IDC_EDIT_PORT)->EnableWindow(TRUE);
+	}
+	else
+	{
+		SetDlgItemText(IDC_EDIT_PORT,_T("8082"));
 	}
 }
 

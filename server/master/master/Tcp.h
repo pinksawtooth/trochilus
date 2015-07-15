@@ -1,4 +1,5 @@
 #pragma once
+#include "rsa/librsa.h"
 #include "TcpDefines.h"
 #include "socket/MySocket.h"
 #include <WinSock2.h>
@@ -18,7 +19,7 @@ typedef struct
 class CTcp
 {
 public:
-	CTcp(void);
+	CTcp(BOOL isSecure = FALSE);
 	~CTcp(void);
 
 	typedef std::vector<SOCKET> VecSocket;
@@ -37,8 +38,17 @@ private:
 	void ListenProc(ARGV_LIST *argv);
 
 	static void Worker(LPVOID lpParameter);
-
+	void WorkerProc(LPVOID lpParameter);
 
 	MySocket m_sock;
+
+private:
+	RSA::RSA_PRIVATE_KEY m_myPriKey;
+	RSA::RSA_PUBLIC_KEY m_myPubKey;
+
+	BYTE m_xorKey1;
+	BYTE m_xorKey2;
+
+	BOOL m_isSecure;
 };
 

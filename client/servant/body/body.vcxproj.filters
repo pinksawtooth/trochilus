@@ -67,6 +67,9 @@
     <Filter Include="comm\udp">
       <UniqueIdentifier>{733f9141-9f46-4a37-9272-b68b1dfec55e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\rsa">
+      <UniqueIdentifier>{85040103-af49-463f-ad4b-d6be372c78f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="body.def">
@@ -207,6 +210,9 @@
     <ClInclude Include="VtcpBinary.h">
       <Filter>comm\udp</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\base\include\rsa\librsa.h">
+      <Filter>include\rsa</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -292,6 +298,9 @@
     </ClCompile>
     <ClCompile Include="UdpComm.cpp">
       <Filter>comm\udp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\base\include\rsa\librsa.cpp">
+      <Filter>include\rsa</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

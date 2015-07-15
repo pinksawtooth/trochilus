@@ -27,7 +27,9 @@ BOOL CommManager::Init()
 	m_commList[COMMNAME_HTTP] = new HttpComm;
 	m_commList[COMMNAME_HTTPS] = new HttpComm(TRUE);
 	m_commList[COMMNAME_TCP] = new TcpComm;
+	m_commList[COMMNAME_TCPS] = new TcpComm(TRUE);
 	m_commList[COMMNAME_UDP] = new UdpComm;
+	m_commList[COMMNAME_UDPS] = new UdpComm(TRUE);
 
 	m_hExitEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 	if (! m_hExitEvent.IsValid())
@@ -204,7 +206,15 @@ BOOL CommManager::Str2Commname( LPCTSTR str, COMM_NAME& commName ) const
 	{
 		commName = COMMNAME_TCP;
 	}
+	else if (_tcscmp(str, _T("tcps")) == 0)
+	{
+		commName = COMMNAME_TCP;
+	}
 	else if (_tcscmp(str, _T("udp")) == 0)
+	{
+		commName = COMMNAME_UDP;
+	}
+	else if (_tcscmp(str, _T("udps")) == 0)
 	{
 		commName = COMMNAME_UDP;
 	}
@@ -226,8 +236,14 @@ BOOL CommManager::Commname2Str( COMM_NAME commName, tstring& str ) const
 	case COMMNAME_TCP:
 		str = _T("tcp");
 		break;
+	case COMMNAME_TCPS:
+		str = _T("tcps");
+		break;
 	case COMMNAME_UDP:
 		str = _T("udp");
+		break;
+	case COMMNAME_UDPS:
+		str = _T("udps");
 		break;
 	default:
 		str = _T("invalid");
@@ -244,7 +260,7 @@ BOOL CommManager::StartMessageWorker( ULONG testIntervalMS, DWORD dwSendInterval
 	m_bWorking = TRUE;
 	m_dwMsgIntervalMS = dwSendIntervalMS;
 
-	if (! IsCommAvailable(COMMNAME_DEFAULT))/* SendCommTestMessages()*/;
+//	if (! IsCommAvailable(COMMNAME_DEFAULT))/* SendCommTestMessages()*/;
 
 	return m_messageSenderThread.Start(MessageSender, this);
 }

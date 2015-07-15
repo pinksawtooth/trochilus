@@ -175,6 +175,7 @@
     <ClInclude Include="..\..\..\base\include\md5\md5.h" />
     <ClInclude Include="..\..\..\base\include\memdll\MemLoadDll.h" />
     <ClInclude Include="..\..\..\base\include\ods.h" />
+    <ClInclude Include="..\..\..\base\include\rsa\librsa.h" />
     <ClInclude Include="..\..\..\base\include\socket\MySocket.h" />
     <ClInclude Include="..\..\..\base\include\tstring.h" />
     <ClInclude Include="..\..\..\base\include\winhttp\http.h" />
@@ -218,6 +219,7 @@
     <ClCompile Include="..\..\..\base\include\md5\md5.cpp" />
     <ClCompile Include="..\..\..\base\include\memdll\MemLoadDll.cpp" />
     <ClCompile Include="..\..\..\base\include\ods.cpp" />
+    <ClCompile Include="..\..\..\base\include\rsa\librsa.cpp" />
     <ClCompile Include="..\..\..\base\include\socket\MySocket.cpp" />
     <ClCompile Include="..\..\..\base\include\tstring.cpp" />
     <ClCompile Include="..\..\..\base\include\winhttp\http.cpp" />

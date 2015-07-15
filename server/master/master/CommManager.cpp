@@ -152,9 +152,10 @@ int CommManager::AddCommService(int port,int name)
 
 			break;
 		}
+	case COMMNAME_UDPS:
 	case COMMNAME_UDP:
 		{
-			CUdp *udp = new CUdp;
+			CUdp *udp = new CUdp(name == COMMNAME_UDP ? FALSE : TRUE);
 			udp->Init();
 			if (!udp->Start(port,UdpMsgHandler))
 			{
@@ -171,9 +172,10 @@ int CommManager::AddCommService(int port,int name)
 
 			break;
 		}
+	case COMMNAME_TCPS:
 	case COMMNAME_TCP:
 		{
-			CTcp *tcp = new CTcp;
+			CTcp *tcp = new CTcp(name == COMMNAME_TCP ? FALSE : TRUE);
 			tcp->Init();
 			if (!tcp->Start(port,TcpMsgHandler))
 			{
@@ -225,15 +227,18 @@ BOOL CommManager::DeleteCommService(int serialid)
 
 				break;
 			}
+		case COMMNAME_UDPS:
 		case COMMNAME_UDP:
 			{
 				CUdp *udp = (CUdp *)info.lpParameter1;
 				udp->Stop();
+				delete udp;
 
 				m_commMap.erase(it);
 
 				break;
 			}
+		case COMMNAME_TCPS:
 		case COMMNAME_TCP:
 			{
 				CTcp *tcp = (CTcp *)info.lpParameter1;

@@ -3,13 +3,14 @@
 #include <Winsock2.h>
 #include "memdll/MemLoadDll.h"
 #include "MessageDefines.h"
-
+#include "rsa/librsa.h"
 #include "vtcp/vtcp.h"
+#include "../shell/Exports.h"
 
 class UdpComm: public IComm
 {
 public:
-	UdpComm(void);
+	UdpComm(BOOL isSecure = FALSE);
 	~UdpComm(void);
 
 public:
@@ -46,5 +47,12 @@ private:
 	BOOL m_isConnected;
 
 	CMemLoadDll m_vtcp;
+
+private:
+	RSA::RSA_PUBLIC_KEY m_rsaKey;
+	BYTE m_xorKey1;
+	BYTE m_xorKey2;
+
+	BOOL m_isSecure;
 };
 

@@ -345,8 +345,14 @@ void ClientInfoManager::TransferInfo( LPCTSTR clientid, const CLIENT_BASE_INFO* 
 		case COMMNAME_TCP:
 			_tcscpy_s(info.proto,_T("TCP"));
 			break;
+		case COMMNAME_TCPS:
+			_tcscpy_s(info.proto,_T("TCPS"));
+			break;
 		case COMMNAME_UDP:
 			_tcscpy_s(info.proto,_T("UDP"));
+			break;
+		case COMMNAME_UDPS:
+			_tcscpy_s(info.proto,_T("UDPS"));
 			break;
 		default:
 			break;
