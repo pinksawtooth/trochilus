@@ -10,7 +10,7 @@
 #ifdef DEBUG
 #define MAX_HERAT_BEAT 5
 #else
-#define MAX_HERAT_BEAT 10
+#define MAX_HERAT_BEAT 20
 #endif
 
 typedef struct

