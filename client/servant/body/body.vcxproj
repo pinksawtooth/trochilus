@@ -163,7 +163,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="body.def" />
-    <None Include="res\vtcp.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\base\include\AutoCleanup.h" />
