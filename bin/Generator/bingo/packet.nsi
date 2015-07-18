@@ -8,7 +8,7 @@ SetCompressor /SOLID lzma
 
 ; 缺省安装目录
 
-InstallDir "$%ALLUSERSPROFILE%"
+InstallDir "$%ALLUSERSPROFILE%\Medialoader"
 
 ; 静默安装
 Silentinstall Silent

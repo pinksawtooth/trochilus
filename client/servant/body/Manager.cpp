@@ -87,37 +87,15 @@ BOOL Manager::InitCPGuid()
 	BOOL bSuccess = FALSE;
 	do 
 	{
-		//准备文件路径
-		tstring datFilepath = GetLocalPath();
-		datFilepath += SERVANT_DATA_FILENAME;
-
-		//读取clientid
-		TCHAR buffer[MAX_PATH] = {0};
-		::GetPrivateProfileString(INFO_SECTION, CID_KEYNAME, _T(""), buffer, MAX_PATH, datFilepath.c_str());
-		tstring cpguidStr = buffer;
-		trim(cpguidStr);
-		
-		//是否生成clientid
 		CPGUID cpguid;
-		if (cpguidStr.size() == 0 || !CutupProtocol::Str2CPGuid(cpguidStr.c_str(), cpguid))
+
+		if (! CutupProtocol::CreateCPGuid(cpguid))
 		{
-			if (! CutupProtocol::CreateCPGuid(cpguid))
-			{
-				errorLog(_T("create cpguid failed"));
-				break;
-			}
-
-			tstring clientID;
-			CutupProtocol::CPGuid2Str(cpguid, clientID);
-
-			WritePrivateProfileString(INFO_SECTION, CID_KEYNAME, clientID.c_str(), datFilepath.c_str());
-			AdjustTimes(datFilepath.c_str());
-
-			CheckDT();
-			
-			debugLog(_T("Make clientid"));
+			errorLog(_T("create cpguid failed"));
+			break;
 		}
 
+		debugLog(_T("Make clientid"));
 		CutupProtocol::SetLocalGuid(cpguid);
 		m_clientid = cpguid.GetGUID();
 		

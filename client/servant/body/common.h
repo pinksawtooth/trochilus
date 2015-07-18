@@ -2,6 +2,7 @@
 #include <Wtsapi32.h>
 #include "tstring.h"
 
+
 //操作系统标识 枚举类型
 typedef enum WIN_VER_DETAIL {
 	WINDOWS_VERSION_NONE = 0,   // 0

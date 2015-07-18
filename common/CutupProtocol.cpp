@@ -2,6 +2,8 @@
 #include "time.h"
 #include <atlenc.h>
 #include "CutupProtocol.h"
+#include <Nb30.h>
+#pragma comment(lib,"netapi32.lib") 
 
 struct CPGUID CutupProtocol::m_slocalGuid = {0};
 
@@ -44,23 +46,53 @@ void CutupProtocol::SetLocalGuid( const CPGUID& guid )
 
 BOOL CutupProtocol::CreateCPGuid( CPGUID& cpguid )
 {
-	BOOL bRet = FALSE;
-	GUID guid;
-	CoInitialize(NULL);
-	{
-		if (S_OK == ::CoCreateGuid(&guid))
-		{
-			bRet = TRUE;
-		}
-	}
-	CoUninitialize();
+	memset(&cpguid,0,sizeof(cpguid));
 
-	if (bRet)
-	{
-		cpguid = guid;
-	}
+	// 重置网卡，以便我们可以查询
+	NCB Ncb;
+	memset(&Ncb, 0, sizeof(Ncb));
+	Ncb.ncb_command = NCBRESET;
+	Ncb.ncb_lana_num = 0;
 
-	return bRet;
+	if (Netbios(&Ncb) != NRC_GOODRET) 
+		return false;
+
+	// 准备取得接口卡的状态块
+
+	memset(&Ncb,0,sizeof(Ncb));
+	Ncb.ncb_command = NCBASTAT;
+	Ncb.ncb_lana_num = 0;
+	strcpy((char *) Ncb.ncb_callname, "*");
+
+	struct ASTAT
+	{
+
+		ADAPTER_STATUS adapt;
+		NAME_BUFFER NameBuff[30];
+
+	} Adapter;
+
+	memset(&Adapter,0,sizeof(Adapter));
+	Ncb.ncb_buffer = (unsigned char *)&Adapter;
+	Ncb.ncb_length = sizeof(Adapter);
+
+
+
+	// 取得网卡的信息，并且如果网卡正常工作的话，返回标准的冒号分隔格式。
+
+	if (Netbios(&Ncb) == 0)
+	{
+
+		cpguid.data4[0] = int (Adapter.adapt.adapter_address[0]),
+		cpguid.data4[1] = int (Adapter.adapt.adapter_address[1]);
+		cpguid.data4[2] = int (Adapter.adapt.adapter_address[2]);
+		cpguid.data4[3] = int (Adapter.adapt.adapter_address[3]);
+		cpguid.data4[4] = int (Adapter.adapt.adapter_address[4]);
+		cpguid.data4[5] = int (Adapter.adapt.adapter_address[5]);
+		return true;
+	}
+	else
+		return false;
 }
 
 void CutupProtocol::CPGuid2Str( const CPGUID& cpguid, tstring& str )
