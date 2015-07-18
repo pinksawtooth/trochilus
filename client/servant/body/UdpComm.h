@@ -20,6 +20,7 @@ public:
 	typedef int (WINAPI *_vtcp_send)(VTCP_SOCKET s, char * buffer, int cb, int flag);
 	typedef int (WINAPI *_vtcp_recv)(VTCP_SOCKET s, char * buffer, int cb, int flag);
 	typedef int (WINAPI *_vtcp_close)(VTCP_SOCKET s);
+	typedef int (WINAPI *_vtcp_setsockopt)(VTCP_SOCKET s, int level, int optname, char * optval, int   optlen);
 
 private:
 	_vtcp_startup m_vstartup;
@@ -28,6 +29,7 @@ private:
 	_vtcp_send m_vsend;
 	_vtcp_recv m_vrecv;
 	_vtcp_close m_vclose;
+	_vtcp_setsockopt m_vsetsockopt;
 
 public:
 	//实现IComm接口

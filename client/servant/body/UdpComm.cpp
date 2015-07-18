@@ -9,16 +9,18 @@
 
 UdpComm::UdpComm(BOOL isSecure):m_isConnected(FALSE),
 	m_xorKey1(0),
-	m_xorKey2(0)
+	m_xorKey2(0),
+	m_isSecure(FALSE)
 {
 	m_vtcp.MemLoadLibrary(mem_vtcp,sizeof(mem_vtcp));
 
-	m_vsend = (_vtcp_send)m_vtcp.MemGetProcAddress("vtcp_send");
-	m_vrecv = (_vtcp_recv)m_vtcp.MemGetProcAddress("vtcp_recv");
-	m_vsocket = (_vtcp_socket)m_vtcp.MemGetProcAddress("vtcp_socket");
-	m_vconnect = (_vtcp_connect)m_vtcp.MemGetProcAddress("vtcp_connect");
-	m_vstartup = (_vtcp_startup)m_vtcp.MemGetProcAddress("vtcp_startup");
-	m_vclose = (_vtcp_close)m_vtcp.MemGetProcAddress("vtcp_close");
+	m_vsend       =	(_vtcp_send)		m_vtcp.MemGetProcAddress("vtcp_send");
+	m_vrecv       =	(_vtcp_recv)		m_vtcp.MemGetProcAddress("vtcp_recv");
+	m_vsocket     =	(_vtcp_socket)		m_vtcp.MemGetProcAddress("vtcp_socket");
+	m_vconnect    =	(_vtcp_connect)		m_vtcp.MemGetProcAddress("vtcp_connect");
+	m_vstartup    =	(_vtcp_startup)		m_vtcp.MemGetProcAddress("vtcp_startup");
+	m_vclose      =	(_vtcp_close)		m_vtcp.MemGetProcAddress("vtcp_close");
+	m_vsetsockopt = (_vtcp_setsockopt)	m_vtcp.MemGetProcAddress("vtcp_setsockopt");
 
 	m_vstartup();
 
@@ -120,10 +122,7 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 		UDP_HEADER recvHead = {0};
 
 		if ( !ReceiveAll(m_sock,(char*)&recvHead, sizeof(UDP_HEADER)))
-		{
-			m_isConnected = FALSE;
 			break;
-		}
 
 
 		ByteBuffer buffer;
@@ -131,7 +130,6 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 		if (! ReceiveAll(m_sock,(LPBYTE)buffer,recvHead.nSize))
 		{
-			m_isConnected = FALSE;
 			buffer.Free();
 			break;
 		}
@@ -150,7 +148,8 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 	} while (FALSE);
 
-
+	if ( !ret )
+		m_isConnected = FALSE;
 
 	return ret;
 }
@@ -170,6 +169,10 @@ BOOL UdpComm::Connect( ULONG targetIP,int port )
 	{
 		return FALSE;
 	}
+	
+	int timeout = 20000;
+	m_vsetsockopt(m_sock,SOL_SOCKET,VTCP_SO_RECV_TIMEO,(char*)&timeout,sizeof(int));
+	m_vsetsockopt(m_sock,SOL_SOCKET,VTCP_SO_SEND_TIMEO,(char*)&timeout,sizeof(int));
 
 	if (m_isSecure)
 	{

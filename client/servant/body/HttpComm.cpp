@@ -3,7 +3,8 @@
 #include "HttpComm.h"
 
 HttpComm::HttpComm(BOOL isSSL):
-m_http(NULL)
+m_http(NULL),
+m_ssl(FALSE)
 {
 	m_ssl = isSSL;
 }

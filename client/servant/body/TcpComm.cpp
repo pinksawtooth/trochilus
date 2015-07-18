@@ -5,7 +5,8 @@
 
 TcpComm::TcpComm(BOOL isSecure):
 m_xorKey1(0),
-m_xorKey2(0)
+m_xorKey2(0),
+m_isSecure(FALSE)
 {
 	srand(GetTickCount());
 	m_xorKey1 = (BYTE)(rand() % 255);
@@ -76,42 +77,74 @@ BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 	} while (FALSE);
 	
+
+	if ( !ret )
+		m_sock.Close();
+
 	return ret;
 }
 
 BOOL TcpComm::Connect( ULONG targetIP, MySocket& sock )
 {
+	BOOL ret = FALSE;
+
 	sock.Close();
-	if (! sock.Create(TRUE))
+
+	do 
 	{
-		errorLogE(_T("create socket failed."));
-		return FALSE;
-	}
+		if (! sock.Create(TRUE))
+		{
+			errorLogE(_T("create socket failed."));
+			break;
+		}
 
-	if (! sock.Connect(targetIP, g_ConfigInfo.nPort, 10))
-	{
-		errorLog(_T("connect [%u] failed"), targetIP);
-		return FALSE;
-	}
-	if (m_isSecure)
-	{
-		int key1 = 0;
-		int key2 = 0;
+		if (! sock.Connect(targetIP, g_ConfigInfo.nPort, 10))
+		{
+			errorLog(_T("connect [%u] failed"), targetIP);
+			break;
+		}
 
-		int flag = TCP_FLAG;
+		int timeout = 20000; 
+		setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,(char*)&timeout,sizeof(timeout));
+		setsockopt(sock,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(timeout));
 
-		m_sock.SendAll((LPVOID)&flag,sizeof(int));
+		if (m_isSecure)
+		{
+			int key1 = 0;
+			int key2 = 0;
 
-		m_sock.ReceiveAll(&m_rsaKey,sizeof(RSA::RSA_PUBLIC_KEY));
+			int flag = TCP_FLAG;
 
-		RSA::RSAEncrypt((char*)&m_xorKey1,(int*)&key1,m_rsaKey.d,m_rsaKey.n,1);
-		RSA::RSAEncrypt((char*)&m_xorKey2,(int*)&key2,m_rsaKey.d,m_rsaKey.n,1);
+			ret = m_sock.SendAll((LPVOID)&flag,sizeof(int));
 
-		m_sock.SendAll(&key1,sizeof(int));
-		m_sock.SendAll(&key2,sizeof(int));
-	}
+			if ( !ret )
+				break;
 
-	return TRUE;
+			ret = m_sock.ReceiveAll(&m_rsaKey,sizeof(RSA::RSA_PUBLIC_KEY));
+
+			if ( !ret )
+				break;
+
+			RSA::RSAEncrypt((char*)&m_xorKey1,(int*)&key1,m_rsaKey.d,m_rsaKey.n,1);
+			RSA::RSAEncrypt((char*)&m_xorKey2,(int*)&key2,m_rsaKey.d,m_rsaKey.n,1);
+
+			ret = m_sock.SendAll(&key1,sizeof(int));
+
+			if ( !ret )
+				break;
+
+			ret = m_sock.SendAll(&key2,sizeof(int));
+
+			if ( !ret )
+				break;
+		}
+
+	} while (FALSE);
+
+	if ( !ret )
+		sock.Close();
+
+	return ret;
 }
 
 BOOL TcpComm::Send( MySocket& sock, ULONG targetIP, const LPBYTE pData, DWORD dwSize )
