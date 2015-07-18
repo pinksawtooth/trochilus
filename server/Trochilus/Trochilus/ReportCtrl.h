@@ -90,11 +90,11 @@
 // The CReportCtrl Class Definition
 //////////////////////////////////////////////////////////////////////////
 #include <list>
-typedef std::map<tstring,CLIENT_INFO> ClientList;
+typedef std::map<tstring,CLIENT_INFO*> ClientList;
 typedef std::map<tstring,ClientList> GroupMap;
 
 typedef void (*FnClientCallBack)(CLIENT_INFO& info,LPVOID lpParameter);
-
+typedef std::map<CString,BOOL> IsAliveMap;
 class CReportCtrl : public CListCtrl
 {
 public:		
@@ -248,6 +248,8 @@ public:
 	int InsertItem(int nIndex, LPCTSTR lpText);
 	BOOL SetItemText(int nItem, int nSubItem, LPCTSTR lpText);
 
+	int GetIdByData(int data);
+
 protected:	
 	
 	// Helper functions for internal use
@@ -280,6 +282,8 @@ protected:
 	int m_nSortCol; // The sorted column, -1 if none
 	BOOL m_bSortAscending; // Is sort ascending?
 
+	IsAliveMap m_isAliveMap;
+
 	//////////////////////////////////////////////////////////////////////
 	// Wizard Generated Stuff
 	//////////////////////////////////////////////////////////////////////
@@ -294,6 +298,19 @@ protected:
 	//}}AFX_VIRTUAL
 
 	// Generated message map functions
+public:
+		void SetAlive(CString clientid,BOOL is)
+		{
+			m_isAliveMap[clientid] = is;
+		}
+
+		BOOL IsAlive(CString clientid)
+		{
+			if ( m_isAliveMap.find(clientid) != m_isAliveMap.end()) 
+				return m_isAliveMap[clientid];
+
+			return FALSE;
+		}
 
 protected:	
 

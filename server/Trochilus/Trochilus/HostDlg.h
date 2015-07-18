@@ -2,7 +2,10 @@
 
 #include "ReportCtrl.h"
 #include "mfcresize/Resizer.h"
+#include <map>
 // CHostDlg ¶Ô»°¿ò
+
+typedef std::map<CString,CLIENT_INFO> ClientMap;
 
 class CHostDlg : public CDialogEx
 {
@@ -32,4 +35,9 @@ protected:
 public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+
+private:
+	ClientMap m_clients;
+	CriticalSection m_csClient;
+	
 };

@@ -46,28 +46,49 @@ void CHostDlg::ClientInfoNotify(UINT nMsg, LPVOID lpContext, LPVOID lpParameter)
 	return lpDlg->ClientInfoNotifyProc(nMsg,pInfo);
 }
 
+static int g_online = 0;
+
 void CALLBACK CHostDlg::ClientInfoNotifyProc( UINT nMsg,CLIENT_INFO* pInfo )
 {
 	CTrochilusDlg* lpMainDlg = (CTrochilusDlg*)AfxGetApp()->GetMainWnd();
 	CString strHost = lpMainDlg->m_wndStatusBar.GetText(2);
 
-	int nPos = strHost.Find(_T(" "));
+	m_csClient.Enter();
 
-	strHost = strHost.Mid(nPos+1,strHost.GetLength());
-
-	int nCount = atoi(t2a(strHost));
+	ClientMap::iterator it = m_clients.find(pInfo->clientid);
 
 	if (nMsg == WM_ADD_CLIENT)
 	{
-		strHost.Format(_T("Host: %d"),nCount+1);
-		m_ClientList.AddClientInfo(pInfo);
+		if (it == m_clients.end())
+		{
+			m_clients[pInfo->clientid] = *pInfo;
+			g_online++;
+			int i = m_ClientList.AddClientInfo(&m_clients[pInfo->clientid]);
+
+			m_ClientList.SetItemColor((int)&m_clients[pInfo->clientid],RGB(255,0,0));
+			m_ClientList.Update(i);
+		}
+		else
+		{
+			m_ClientList.SetItemColor((int)&m_clients[pInfo->clientid],RGB(255,0,0));
+			int i = m_ClientList.GetIdByData((int)&m_clients[pInfo->clientid]);
+			m_ClientList.Update(i);
+		}
+
+		m_ClientList.SetAlive(pInfo->clientid,TRUE);
 	}
 	else if(nMsg == WM_DEL_CLIENT)
 	{
-		strHost.Format(_T("Host: %d"),nCount-1);
-		m_ClientList.DeleteClientInfo(pInfo);
-		ClientControlPanelManager::GetInstanceRef().ClosePanelDlg(pInfo->clientid);
+		if (it != m_clients.end())
+		{
+			m_ClientList.SetAlive(pInfo->clientid,FALSE);
+			ClientControlPanelManager::GetInstanceRef().ClosePanelDlg(pInfo->clientid);
+			m_ClientList.DeleteClientInfo(&m_clients[pInfo->clientid]);
+		}
 	}
+
+	m_csClient.Leave();
+	strHost.Format(_T("Host: %d"),g_online);
 	lpMainDlg->m_wndStatusBar.SetText(strHost,2,0);
 }
 

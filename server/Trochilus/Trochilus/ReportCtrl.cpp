@@ -267,16 +267,16 @@ void CReportCtrl::DeleteClientInfo(CLIENT_INFO* pInfo)
 {
 	int nCount = GetItemCount();
 
-	GroupMap::iterator it = m_GroupsMap.find(pInfo->groups);
-	if (it != m_GroupsMap.end())
-	{
-		ClientList::iterator cit = it->second.find(pInfo->clientid);
-
-		if (cit != it->second.end())
-		{
-			it->second.erase(cit);
-		}
-	}
+// 	GroupMap::iterator it = m_GroupsMap.find(pInfo->groups);
+// 	if (it != m_GroupsMap.end())
+// 	{
+// 		ClientList::iterator cit = it->second.find(pInfo->clientid);
+// 
+// 		if (cit != it->second.end())
+// 		{
+// 			it->second.erase(cit);
+// 		}
+// 	}
 
 	for (int i = 0 ; i < nCount ; i++)
 	{
@@ -287,8 +287,8 @@ void CReportCtrl::DeleteClientInfo(CLIENT_INFO* pInfo)
 			if (CString(itemInfo->clientid) 
 				== CString(pInfo->clientid))
 			{
-				DeleteItem(i);
-				delete itemInfo;
+				SetItemColor((int)pInfo,RGB(96,96,96));
+				Update(i);
 			}
 			
 		}
@@ -318,19 +318,16 @@ BOOL CReportCtrl::AddClientInfo( CLIENT_INFO* pInfo )
 
 	if (nImage != 1)
 	{
-		CLIENT_INFO* info = new CLIENT_INFO;
-		memcpy(info,pInfo,sizeof(CLIENT_INFO));
-
 		CString memsize;
-		memsize.Format(_T("%d MB"),info->memsize);
-		InsertItem(nIndex,info->computerName);
-		SetItemData(nIndex,(DWORD)info);
+		memsize.Format(_T("%d MB"),pInfo->memsize);
+		InsertItem(nIndex,pInfo->computerName);
+		SetItemData(nIndex,(DWORD)pInfo);
 		SetItemText(nIndex,1,iplist);
 		SetItemText(nIndex,2,CString(inet_ntoa(connectIP)));
-		SetItemText(nIndex,3,common::FormatOSDesc(pInfo->windowsVersion,CString(info->vercode), pInfo->bX64));
+		SetItemText(nIndex,3,common::FormatOSDesc(pInfo->windowsVersion,CString(pInfo->vercode), pInfo->bX64));
 		SetItemText(nIndex,4,strCPU);
 		SetItemText(nIndex,5,memsize);
-		SetItemText(nIndex,6,info->lang);
+		SetItemText(nIndex,6,pInfo->lang);
 		SetItemText(nIndex,7,pInfo->priv);
 		SetItemText(nIndex,8,pInfo->proto);
 		SetItemText(nIndex,9,common::FormatSystemTime(pInfo->installTime));
@@ -347,17 +344,17 @@ BOOL CReportCtrl::AddClientInfo( CLIENT_INFO* pInfo )
 
 		if (it2 == it1->second.end())
 		{
-			it1->second.insert(MAKE_PAIR(ClientList,pInfo->clientid,*pInfo));
+			it1->second.insert(MAKE_PAIR(ClientList,pInfo->clientid,pInfo));
 		}
 	}
 	else
 	{
-		list.insert(MAKE_PAIR(ClientList,pInfo->clientid,*pInfo));
+		list.insert(MAKE_PAIR(ClientList,pInfo->clientid,pInfo));
 		m_GroupsMap.insert(MAKE_PAIR(GroupMap,pInfo->groups,list));
 	}
 	
 
-	return TRUE;
+	return nIndex;
 }
 
 
@@ -365,7 +362,6 @@ void CReportCtrl::DeleteGroupsClient( int nIndex , ClientList& list )
 {
 	for (UINT i = 0 ; i < list.size() ; i ++)
 	{
-		delete (void*)GetItemData(nIndex+1);
 		DeleteItem(nIndex+1);
 	}
 }
@@ -374,7 +370,14 @@ void CReportCtrl::InsertGroupsClient( int nIndex , ClientList& list )
 	ClientList::iterator it = list.begin();
 	for ( ; it != list.end(); it ++)
 	{
-		AddClientInfo(&it->second);
+		int i = AddClientInfo(it->second);
+
+		if (IsAlive(it->second->clientid))
+			SetItemColor((int)it->second,RGB(255,0,0));
+		else
+			SetItemColor((int)it->second,RGB(96,96,96));
+
+		Update(i);
 	}
 }
 void CReportCtrl::OnLButtonDblClk(UINT nFlags, CPoint point) 
@@ -394,7 +397,11 @@ void CReportCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 		{
 			CLIENT_INFO* info;
 			info = (CLIENT_INFO*)GetItemData(index);
-			m_lpDbcFunc(*info,m_lpParameter);
+
+			if (IsAlive(info->clientid))
+			{
+				m_lpDbcFunc(*info,m_lpParameter);
+			}
 			break;
 		}
 
@@ -453,7 +460,8 @@ void CReportCtrl::OnRButtonDblClk(UINT nFlags, CPoint point)
 		{
 			CLIENT_INFO* info;
 			info = (CLIENT_INFO*)GetItemData(index);
-			MakeClientSelfDestruction(info->clientid);
+			if (IsAlive(info->clientid))
+				MakeClientSelfDestruction(info->clientid);
 			break;
 		}
 
@@ -518,6 +526,21 @@ BOOL CReportCtrl::SetColumnHeader(const CString& strHeadings)
 		}
 	}
 	return bInserted;
+}
+
+int CReportCtrl::GetIdByData(int data)
+{
+	int nCount = GetItemCount();
+
+	for (int i = 0 ; i < nCount ; i++)
+	{
+		DWORD dwData = GetItemData(i);
+		if (dwData == data)
+		{
+			return i;
+		}
+	}
+	return 0xffffffff;
 }
 
 int CReportCtrl::InsertItem(int nIndex, LPCTSTR lpText)
