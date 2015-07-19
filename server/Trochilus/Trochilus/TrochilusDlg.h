@@ -1,5 +1,6 @@
 #pragma once
 #include "afxcmn.h"
+#include "thread/RepeatTask.h"
 #include "HostDlg.h"
 #include "ListenDlg.h"
 #include "mfcresize/Resizer.h"
@@ -46,4 +47,5 @@ public:
 
 	afx_msg void OnTcnSelchangeTabMain(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+
 };

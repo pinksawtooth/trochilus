@@ -118,8 +118,6 @@ void common::SetWindowFont( HWND hWnd )
 
 	CWnd* pw = CWnd::FromHandle(hWnd);
 
-	pw->GetDlgItem(IDC_LIST_CLIENT)->SetFont(pFont);
-
 	do
 	{
 		pw->SetFont(pFont);

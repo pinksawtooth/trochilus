@@ -27,6 +27,7 @@ typedef struct
 	tstring clientid;
 	tstring findstr;
 	IRCFileOperation* pFo;
+	FnModuleNotifyProc fnProc;
 	tstring notify;
 	LPVOID lpParameter1;
 	BOOL	bForce;

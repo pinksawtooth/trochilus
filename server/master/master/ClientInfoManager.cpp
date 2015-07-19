@@ -28,7 +28,7 @@ BOOL ClientInfoManager::Init()
 BOOL ClientInfoManager::MsgHandler_OutputError( MSGID msgid, const CommData& commData, LPVOID lpParameter )
 {
 	DECLARE_STR_PARAM(error);
-	ClientInfoManager::GetInstanceRef().QueryModuleInfo(commData.GetClientID(),MODULE_MSG_NOTIFYMSG,(LPVOID)error.c_str(),(LPVOID)MODULE_TYPE_ERROR);
+	errorLog(_T("[CLIENT ERROR][%s] %s"),error.c_str(),commData.GetClientID());
 	return TRUE;
 }
 BOOL ClientInfoManager::MsgHandler_ClientInfo( MSGID msgid, const CommData& commData, LPVOID lpParameter )
@@ -381,48 +381,4 @@ void ClientInfoManager::TransferInfo( LPCTSTR clientid, const CLIENT_BASE_INFO* 
 		info.windowsVersion = WINDOWS_VERSION_NONE;
 		info.localIPCount = 0;
 	}
-}
-
-void ClientInfoManager::QueryModuleStatus( LPCTSTR clientid, LPCTSTR moduleName, MODULE_INST_STATUS& status, MSGSERIALID* pMsgserial )
-{
-	status = MODULESTATUS_UNINSTALLED;
-
-	m_infoMapSection.Enter();
-	{
-		ClientBaseInfoMap::const_iterator iter = m_clientBaseInfoMap.find(clientid);
-		if (iter != m_clientBaseInfoMap.end())
-		{
-			const CLIENT_BASE_INFO& info = iter->second;
-
-			//查询模块是否已安装
-			CString modname(moduleName);
-			modname.MakeLower();
-			CString findstr(modname);
-			findstr += ',';
-			if (info.mods.find((LPCTSTR)findstr) != tstring::npos)
-			{
-				status = MODULESTATUS_INSTALLED;
-			}
-			else
-			{
-				MsgSerialIDMap::const_iterator msiter = info.installModMsgIDMap.find((LPCTSTR)modname);
-				if (msiter != info.installModMsgIDMap.end())
-				{
-					status = MODULESTATUS_INSTALLING;
-					if (NULL != pMsgserial) *pMsgserial = msiter->second;
-				}
-			}
-		}
-	}
-	m_infoMapSection.Leave();
-}
-void ClientInfoManager::SetModuleCallBack(FnModuleNotifyProc func)
-{
-	m_fnModuleCallback = func;
-}
-
-void ClientInfoManager::QueryModuleInfo(LPCTSTR clientid,UINT nMsg, LPVOID lpContext, LPVOID lpParameter)
-{
-	if(m_fnModuleCallback)
-		m_fnModuleCallback(clientid,nMsg,lpContext,lpParameter);
 }

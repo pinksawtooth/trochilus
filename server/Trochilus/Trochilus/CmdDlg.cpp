@@ -87,6 +87,19 @@ void CCmdDlg::EnableButton(BOOL isOpen)
 
 BOOL CCmdDlg::OnInitDialog()
 {
+	CString strTitle;
+	CLIENT_INFO info;
+
+	GetClientInfo(m_clientid,&info);
+
+	IN_ADDR connectIP;
+	connectIP.S_un.S_addr = info.connectIP;
+
+	strTitle.Format(_T("Commander [%s][%s]"),info.computerName,CString(inet_ntoa(connectIP)).GetBuffer());
+
+	SetWindowText(strTitle);
+
+
 	__super::OnInitDialog();
 
 	InitDisable();
@@ -102,14 +115,13 @@ BOOL CCmdDlg::OnInitDialog()
 
 void CCmdDlg::OnBnClickedButtonOpen()
 {
-	if (OpenShell(m_clientid,m_handleMsg,this))
+	if (OpenShell(m_clientid,HandleModuleMsg,this))
 	{
-		CommitNotifyMsg(MODULE_TYPE_INFO,_T("Open cmdshell success!"));
 		EnableButton(TRUE);
 	}
 	else
 	{
-		CommitNotifyMsg(MODULE_TYPE_ERROR,_T("Open cmdshell error!"));
+		AfxMessageBox(_T("Open Commander Error!"));
 	}
 }
 
@@ -117,7 +129,6 @@ void CCmdDlg::OnBnClickedButtonOpen()
 void CCmdDlg::OnBnClickedButtonClose()
 {
 	CloseShell((LPCWSTR)m_clientid.GetBuffer());
-	CommitNotifyMsg(MODULE_TYPE_ERROR,_T("Close cmdshell success!"));
 	EnableButton(FALSE);
 }
 

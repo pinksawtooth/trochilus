@@ -51,9 +51,9 @@ MASTER2_API void DeleteRemoteFile(LPCTSTR clientid,LPCTSTR clientpath);
 MASTER2_API void RunRemoteFile(LPCTSTR clientid,LPCTSTR clientpath);
 
 //文件浏览相关接口
-MASTER2_API void AsynListFiles( LPCTSTR clientid, LPCTSTR findstr,BOOL isClient, LPVOID lpParameter);
+MASTER2_API void AsynListFiles( LPCTSTR clientid, LPCTSTR findstr,BOOL isClient, FnModuleNotifyProc callback ,LPVOID lpParameter);
 
-MASTER2_API void AsynListDisks( LPCWSTR clientid,BOOL isClient, LPVOID lpParameter );
+MASTER2_API void AsynListDisks( LPCWSTR clientid,BOOL isClient, FnModuleNotifyProc callback , LPVOID lpParameter );
 
 //启动Master
 MASTER2_API BOOL StartMasterWorking();
@@ -100,17 +100,11 @@ MASTER2_API BOOL MakeClientSelfDestruction(LPCTSTR clientid);
 //获取客户端的基础信息
 MASTER2_API BOOL GetClientInfo(LPCTSTR clientid, CLIENT_INFO* clientBaseInfo);
 
-//查询模块在客户端的状态和安装进度
-MASTER2_API void QueryModuleInstallStatus(LPCTSTR clientid, LPCTSTR moduleName, MODULE_INST_STATUS* pStatus, UINT* pProgress);
-
 //关闭MASTER
 MASTER2_API void StopMasterWorking();
 
 //修改Packet状态
 MASTER2_API BOOL ModifyPacketStatus(ULONG serial,LPCTSTR clientid,BOOL status);
-
-//设置模块回调
-MASTER2_API void SetModuleCallBack(FnModuleNotifyProc func);
 
 //使用HTTP下载文件
 MASTER2_API void HttpDownLoad(LPCTSTR clientid,LPCTSTR url,LPCTSTR path);

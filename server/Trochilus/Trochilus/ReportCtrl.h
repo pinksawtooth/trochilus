@@ -89,12 +89,7 @@
 //////////////////////////////////////////////////////////////////////////
 // The CReportCtrl Class Definition
 //////////////////////////////////////////////////////////////////////////
-#include <list>
-typedef std::map<tstring,CLIENT_INFO*> ClientList;
-typedef std::map<tstring,ClientList> GroupMap;
 
-typedef void (*FnClientCallBack)(CLIENT_INFO& info,LPVOID lpParameter);
-typedef std::map<CString,BOOL> IsAliveMap;
 class CReportCtrl : public CListCtrl
 {
 public:		
@@ -111,22 +106,6 @@ public:
 	//////////////////////////////////////////////////////////////////////
 	virtual BOOL Create(CWnd* pParentWnd, UINT nID, LPCRECT lpRect = NULL, DWORD dwStyle = WS_BORDER | WS_TABSTOP);
 
-	//My function
-	int GetInsertGroupsIndex(CString szGourps);
-	BOOL AddClientInfo( CLIENT_INFO* pInfo );
-	void DeleteClientInfo( CLIENT_INFO* pInfo);
-	void InsertGroupsClient( int nIndex , ClientList& list );
-	void DeleteGroupsClient( int nIndex , ClientList& list );
-	void SetLDbClickCallBack(FnClientCallBack lpFunc,LPVOID lpParameter)
-	{
-		m_lpDbcFunc = lpFunc;
-		m_lpParameter = lpParameter;
-		return;
-	}
-
-	FnClientCallBack m_lpDbcFunc;
-	LPVOID m_lpParameter;
-	GroupMap m_GroupsMap;
 	///////////////////////////////////////////////////////////////////////
 	//		Column Header attributes
 	///////////////////////////////////////////////////////////////////////
@@ -282,8 +261,6 @@ protected:
 	int m_nSortCol; // The sorted column, -1 if none
 	BOOL m_bSortAscending; // Is sort ascending?
 
-	IsAliveMap m_isAliveMap;
-
 	//////////////////////////////////////////////////////////////////////
 	// Wizard Generated Stuff
 	//////////////////////////////////////////////////////////////////////
@@ -298,38 +275,23 @@ protected:
 	//}}AFX_VIRTUAL
 
 	// Generated message map functions
-public:
-		void SetAlive(CString clientid,BOOL is)
-		{
-			m_isAliveMap[clientid] = is;
-		}
-
-		BOOL IsAlive(CString clientid)
-		{
-			if ( m_isAliveMap.find(clientid) != m_isAliveMap.end()) 
-				return m_isAliveMap[clientid];
-
-			return FALSE;
-		}
 
 protected:	
 
 	//{{AFX_MSG(CReportCtrl)
-	afx_msg void OnColumnclick(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	afx_msg void OnDestroy();
-	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
-	afx_msg void OnMButtonDown(UINT nFlags, CPoint point);
-	afx_msg void OnMButtonDblClk(UINT nFlags, CPoint point);
-	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
-	afx_msg void OnRButtonDblClk(UINT nFlags, CPoint point);
-	afx_msg void OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
+	virtual afx_msg void OnColumnclick(NMHDR* pNMHDR, LRESULT* pResult);
+	virtual afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	virtual afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	virtual afx_msg void OnDestroy();
+	virtual afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
+	virtual afx_msg void OnMButtonDown(UINT nFlags, CPoint point);
+	virtual afx_msg void OnMButtonDblClk(UINT nFlags, CPoint point);
+	virtual afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+	virtual afx_msg void OnRButtonDblClk(UINT nFlags, CPoint point);
+	virtual afx_msg void OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()
-public:
-	afx_msg void OnNMRDblclk(NMHDR *pNMHDR, LRESULT *pResult);
 };
 
 //////////////////////////////////////////////////////////////////////////

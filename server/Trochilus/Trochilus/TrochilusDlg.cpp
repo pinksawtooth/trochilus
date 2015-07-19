@@ -5,9 +5,8 @@
 #include "stdafx.h"
 #include "Trochilus.h"
 #include "TrochilusDlg.h"
-#include "PanelDlg.h"
+#include "FilePanelDlg.h"
 #include "afxdialogex.h"
-#include "MasterModuleManager.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -43,6 +42,7 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
+	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
 
@@ -68,6 +68,7 @@ BEGIN_MESSAGE_MAP(CTrochilusDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB_MAIN, &CTrochilusDlg::OnTcnSelchangeTabMain)
+
 	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
@@ -105,6 +106,9 @@ BOOL CTrochilusDlg::InitView()
 
 	m_LisDlg.Create(IDD_DIALOG_LIS,&m_tabMain);
 	m_LisDlg.MoveWindow(&rs);
+
+	m_HostDlg.SetParent(CWnd::FromHandle(m_tabMain.m_hWnd));
+	m_LisDlg.SetParent(CWnd::FromHandle(m_tabMain.m_hWnd));
 
 	m_HostDlg.ShowWindow(TRUE);
 	//³õÊ¼»¯×´Ì¬À¸
@@ -147,20 +151,6 @@ BOOL CTrochilusDlg::OnInitDialog()
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
 
-// 	CMenu* pSysMenu = GetSystemMenu(FALSE);
-// 	if (pSysMenu != NULL)
-// 	{
-// 		BOOL bNameValid;
-// 		CString strAboutMenu;
-// 		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
-// 		ASSERT(bNameValid);
-// 		if (!strAboutMenu.IsEmpty())
-// 		{
-// 			pSysMenu->AppendMenu(MF_SEPARATOR);
-// 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
-// 		}
-// 	}
-
 	SetIcon(m_hIcon, TRUE);	
 	SetIcon(m_hIcon, FALSE);
 
@@ -169,7 +159,7 @@ BOOL CTrochilusDlg::OnInitDialog()
 		ExitProcess(0);
 	}
 
-	InitResize();
+	//InitResize();
 	return TRUE;
 }
 
@@ -251,4 +241,3 @@ void CTrochilusDlg::OnSize(UINT nType, int cx, int cy)
 	}
 
 }
-

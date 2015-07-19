@@ -67,7 +67,6 @@
 #include "common.h"
 #include "../../master/master/masterInclude.h"
 
-#include "MasterModuleManager.h"
 #include "IModule.h"
 
 #define OUTPUT_LOG

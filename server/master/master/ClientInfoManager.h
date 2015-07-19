@@ -46,10 +46,7 @@ public:
 	void SetCallbacks(FnNotifyProc fnCallback, LPVOID lpParameter);
 	BOOL InstallModule(LPCTSTR clientid, LPCTSTR moduleName);
 	void TransferInfo(LPCTSTR clientid, const CLIENT_BASE_INFO* pBaseInfo, CLIENT_INFO& info) const;
-	void QueryModuleStatus(LPCTSTR clientid, LPCTSTR moduleName, MODULE_INST_STATUS& status, MSGSERIALID* pMsgserial);
 
-	void SetModuleCallBack(FnModuleNotifyProc func);
-	void QueryModuleInfo(LPCTSTR clientid,UINT nMsg, LPVOID lpContext, LPVOID lpParameter);
 	void HandleInstalMsg(tstring clientid,CLIENT_BASE_INFO& info);
 
 	static BOOL MsgHandler_OutputError( MSGID msgid, const CommData& commData, LPVOID lpParameter );

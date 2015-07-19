@@ -14,7 +14,7 @@ public:
 
 // 对话框数据
 	enum { IDD = IDD_DIALOG_CMD };
-	static void HandleModuleMsg(LPCTSTR clientid,UINT nMsg, LPVOID lpContext, LPVOID lpParameter);
+	static void CALLBACK HandleModuleMsg(LPCTSTR clientid,UINT nMsg, LPVOID lpContext, LPVOID lpParameter);
 	void HandleModuleMsgProc(UINT nMsg,LPVOID lpContext,LPVOID lpParameter);
 
 	void EnableButton(BOOL isOpen);

@@ -102,15 +102,6 @@
     <ClInclude Include="common.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="PanelDlg.h">
-      <Filter>dlg</Filter>
-    </ClInclude>
-    <ClInclude Include="MasterModuleManager.h">
-      <Filter>control</Filter>
-    </ClInclude>
-    <ClInclude Include="ClientControlPanelManager.h">
-      <Filter>control</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\base\include\json\autolink.h">
       <Filter>json</Filter>
     </ClInclude>
@@ -228,9 +219,6 @@
     <ClInclude Include="..\..\pub\ModuleMessage.h">
       <Filter>control</Filter>
     </ClInclude>
-    <ClInclude Include="InstallDlg.h">
-      <Filter>dlg</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\base\include\mfcresize\Resizer.h">
       <Filter>resize</Filter>
     </ClInclude>
@@ -239,6 +227,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\base\include\ods.h">
       <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="FilePanelDlg.h">
+      <Filter>dlg</Filter>
+    </ClInclude>
+    <ClInclude Include="HostList.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -253,15 +247,6 @@
     </ClCompile>
     <ClCompile Include="common.cpp">
       <Filter>utils</Filter>
-    </ClCompile>
-    <ClCompile Include="PanelDlg.cpp">
-      <Filter>dlg</Filter>
-    </ClCompile>
-    <ClCompile Include="MasterModuleManager.cpp">
-      <Filter>control</Filter>
-    </ClCompile>
-    <ClCompile Include="ClientControlPanelManager.cpp">
-      <Filter>control</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\base\include\json\json_reader.cpp">
       <Filter>json</Filter>
@@ -308,9 +293,6 @@
     <ClCompile Include="IconLoader.cpp">
       <Filter>control</Filter>
     </ClCompile>
-    <ClCompile Include="InstallDlg.cpp">
-      <Filter>dlg</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\base\include\mfcresize\Resizer.cpp">
       <Filter>resize</Filter>
     </ClCompile>
@@ -319,6 +301,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\base\include\ods.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="FilePanelDlg.cpp">
+      <Filter>dlg</Filter>
+    </ClCompile>
+    <ClCompile Include="HostList.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

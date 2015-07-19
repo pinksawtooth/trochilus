@@ -18,7 +18,6 @@ EXPORTS
 	RegisterCommMsgHandler	@13
 	QuerySendingMessageStatus	@14
 
-	QueryModuleInstallStatus	@17
 	StopMasterWorking			@18
 
 	AsynListFiles			@21

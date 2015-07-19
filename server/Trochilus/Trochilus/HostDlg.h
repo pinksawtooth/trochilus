@@ -3,6 +3,7 @@
 #include "ReportCtrl.h"
 #include "mfcresize/Resizer.h"
 #include <map>
+#include "HostList.h"
 // CHostDlg 对话框
 
 typedef std::map<CString,CLIENT_INFO> ClientMap;
@@ -21,6 +22,8 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
+	virtual afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
+
 	static void CALLBACK ClientInfoNotify(UINT nMsg, LPVOID lpContext, LPVOID lpParameter);
 	void CALLBACK ClientInfoNotifyProc(UINT nMsg,CLIENT_INFO* pInfo);
 
@@ -29,7 +32,7 @@ protected:
 	static void StartPanel(CLIENT_INFO& info,LPVOID lpParameter);
 
 	CImageList m_Imagelist;
-	CReportCtrl m_ClientList;
+	CHostList m_Clientlist;
 	CResizer m_resizer;
 	DECLARE_MESSAGE_MAP()
 public:
@@ -40,4 +43,5 @@ private:
 	ClientMap m_clients;
 	CriticalSection m_csClient;
 	
+
 };

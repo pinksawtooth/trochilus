@@ -14,7 +14,7 @@ public:
 	enum { IDD = IDD_DIALOG_FILE };
 
 	//处理模块消息
-	static void HandleModuleMsg(LPCTSTR clientid,UINT nMsg, LPVOID lpContext, LPVOID lpParameter);
+	static void CALLBACK HandleModuleMsg(LPCTSTR clientid,UINT nMsg, LPVOID lpContext, LPVOID lpParameter);
 	void HandleModuleMsgProc(UINT nMsg, LPVOID lpContext, LPVOID lpParameter);
 
 protected:
@@ -25,9 +25,6 @@ protected:
 	virtual BOOL OnInitDialog();
 	void InitView();
 	void InitData();
-
-	//输出控制板信息
-	void OutputLog(CString strLog);
 
 	//设置对话框字段名
 	void SetColumn(CListCtrl* list,LPTSTR text,int nCol,int nWidth);

@@ -6,6 +6,7 @@
 #include "FileMgrDlg.h"
 #include "IconLoader.h"
 #include "afxdialogex.h"
+#include "DownDlg.h"
 #include "json/json.h"
 
 
@@ -92,26 +93,24 @@ void CFileMgrDlg::HandleRemoteFile(UINT nMsg, LPVOID lpContext, LPVOID lpParamet
 
 void CFileMgrDlg::GetRemoteList(CString strPath)
 {
-	OutputLog(strPath);
-
 	if (strPath.GetLength() == 0)
 	{
-		AsynListDisks(m_clientid,TRUE,this);
+		AsynListDisks(m_clientid,TRUE,HandleModuleMsg,this);
 	}
 	else
 	{
-		AsynListFiles(m_clientid,strPath,TRUE,this);
+		AsynListFiles(m_clientid,strPath,TRUE,HandleModuleMsg,this);
 	}
 }
 void CFileMgrDlg::GetLocalList(CString strPath)
 {
 	if (strPath.GetLength() == 0)
 	{
-		AsynListDisks(m_clientid,FALSE,NULL);
+		AsynListDisks(m_clientid,FALSE,HandleModuleMsg,this);
 	}
 	else
 	{
-		AsynListFiles(m_clientid,strPath,FALSE,NULL);
+		AsynListFiles(m_clientid,strPath,FALSE,HandleModuleMsg,this);
 	}
 }
 
@@ -135,7 +134,6 @@ void CFileMgrDlg::InsertFileList( char* lpJson,BOOL isRemote )
 
 	if (strJson == "null\n")
 	{
-		CommitNotifyMsg(MODULE_TYPE_WARNING,_T("Dictionary is null!"));
 		int nId = isRemote ? IDC_EDIT_RCURDIC : IDC_EDIT_LCURDIC;
 		CString strCurDir = isRemote ? m_rCurDir : m_lCurDir;
 		SetDlgItemText(nId,strCurDir+"\\");
@@ -199,20 +197,6 @@ void CFileMgrDlg::InsertFileList( char* lpJson,BOOL isRemote )
 		list->SetItemText(nIndex,1,CString(value["size"].asString().c_str()));
 		list->SetItemText(nIndex,2,CString(value["edittime"].asString().c_str()));
 	}
-}
-
-void CFileMgrDlg::OutputLog(CString strPath)
-{
-	CString strNotify;
-	if (strPath.GetLength() == 0)
-	{
-		strNotify = _T("Request disk list");
-	}
-	else
-	{
-		strNotify.Format(_T("Request [%s]"),strPath.GetBuffer());
-	}
-	CommitNotifyMsg(MODULE_TYPE_INFO,strNotify);
 }
 
 void CFileMgrDlg::InitView()
@@ -422,10 +406,6 @@ void CFileMgrDlg::OnBnClickedButtonUpload()
 	strRemote += filename;
 	strLocal += filename;
 
-	CString log;
-	log.Format(_T("Upload [%s]"),strRemote);
-	CommitNotifyMsg(MODULE_TYPE_INFO,log);
-
 	PutFileToClient(m_clientid,strLocal,strRemote);
 }
 
@@ -467,10 +447,6 @@ void CFileMgrDlg::OnBnClickedButtonDown()
 	strRemote += filename;
 	strLocal += filename;
 	
-	CString log;
-	log.Format(_T("Download [%s]"),strRemote);
-	CommitNotifyMsg(MODULE_TYPE_INFO,log);
-
 	GetFileToServer(m_clientid,strRemote,strLocal);
 }
 
@@ -495,11 +471,6 @@ void CFileMgrDlg::OnBnClickedButtonRun()
 
 	strRemote += filename;
 
-
-	CString log;
-	log.Format(_T("Run [%s]"),strRemote);
-	CommitNotifyMsg(MODULE_TYPE_INFO,log);
-
 	RunRemoteFile(m_clientid,strRemote);
 }
 
@@ -522,11 +493,6 @@ void CFileMgrDlg::OnBnClickedButtonDelete()
 	CString filename = m_rFileList.GetItemText(nLItem,0);
 
 	strRemote += filename;
-
-
-	CString log;
-	log.Format(_T("Delete [%s]"),strRemote);
-	CommitNotifyMsg(MODULE_TYPE_INFO,log);
 
 	DeleteRemoteFile(m_clientid,strRemote);
 }
@@ -580,7 +546,6 @@ void CFileMgrDlg::OnNMRClickListRfile(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
-#include "DownDlg.h"
 void CFileMgrDlg::OnClickDownFile()
 {
 	CString strPath;
