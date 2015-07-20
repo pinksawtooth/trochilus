@@ -37,18 +37,18 @@ protected:
 
 private:
 	BOOL   m_bWorking;
-	Handle m_hExitEvent;
+	HANDLE m_hExitEvent;
 
 	// Child input(stdin) & output(stdout, stderr) pipes
-	Handle m_hStdIn, m_hStdOut, m_hStdErr;
+	HANDLE m_hStdIn, m_hStdOut, m_hStdErr;
 	// Parent output(stdin) & input(stdout) pipe
-	Handle m_hStdInWrite, m_hStdOutRead, m_hStdErrRead;
+	HANDLE m_hStdInWrite, m_hStdOutRead, m_hStdErrRead;
 	// stdout, stderr write threads
-	Handle m_hStdOutThread, m_hStdErrThread;
+	HANDLE m_hStdOutThread, m_hStdErrThread;
 	// Monitoring thread
-	Handle m_hProcessThread;
+	HANDLE m_hProcessThread;
 	// Child process handle
-	Handle m_hChildProcess;
+	HANDLE m_hChildProcess;
 
 	DWORD  m_dwPID;
 };

@@ -202,8 +202,6 @@
     <ClInclude Include="CommManager.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="IComm.h" />
-    <ClInclude Include="Module.h" />
-    <ClInclude Include="ModuleManager.h" />
     <ClInclude Include="ServiceManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -229,8 +227,6 @@
     <ClCompile Include="CommManager.cpp" />
     <ClCompile Include="common.cpp" />
     <ClCompile Include="HttpComm.cpp" />
-    <ClCompile Include="Module.cpp" />
-    <ClCompile Include="ModuleManager.cpp" />
     <ClCompile Include="Redirector.cpp" />
     <ClCompile Include="rpc\scm.cpp" />
     <ClCompile Include="rpc\sctrl.cpp" />

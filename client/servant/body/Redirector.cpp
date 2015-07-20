@@ -74,10 +74,10 @@ BOOL Redirector::StartChildProcess(LPCTSTR lpszCmdLine, BOOL bShowChildWindow)
 
 	if (! ::DuplicateHandle(hProcess, hStdErrReadTmp,
 		hProcess, &m_hStdErrRead, 0, FALSE, DUPLICATE_SAME_ACCESS)) return FALSE;
-
-	// Close inheritable copies of the handles you do not want to be
-	// inherited.
-
+// 
+// 	// Close inheritable copies of the handles you do not want to be
+// 	// inherited.
+// 
 	hStdInWriteTmp.Close();
 	hStdOutReadTmp.Close();
 	hStdErrReadTmp.Close();
@@ -94,9 +94,9 @@ BOOL Redirector::StartChildProcess(LPCTSTR lpszCmdLine, BOOL bShowChildWindow)
 		OnChildStdOutWrite(lpszBuffer);
 
 		// close all handles and return FALSE
-		m_hStdIn.Close();
-		m_hStdOut.Close();
-		m_hStdErr.Close();
+		CloseHandle(m_hStdIn);
+		CloseHandle(m_hStdOut);
+		CloseHandle(m_hStdErr);
 
 		return FALSE;
 	}
@@ -106,22 +106,22 @@ BOOL Redirector::StartChildProcess(LPCTSTR lpszCmdLine, BOOL bShowChildWindow)
 
 	// Create Exit event
 	m_hExitEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
-	if (! m_hExitEvent.IsValid()) return FALSE;
+	if ( m_hExitEvent == INVALID_HANDLE_VALUE ) return FALSE;
 
 	// Launch the thread that read the child stdout.
 	m_hStdOutThread = ::CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)staticStdOutThread,
 		(LPVOID)this, 0, &dwThreadID);
-	if (! m_hStdOutThread.IsValid()) return FALSE;
+	if (m_hStdOutThread == INVALID_HANDLE_VALUE) return FALSE;
 
 	// Launch the thread that read the child stderr.
 	m_hStdErrThread = ::CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)staticStdErrThread,
 		(LPVOID)this, 0, &dwThreadID);
-	if (! m_hStdErrThread.IsValid()) return FALSE;
+	if (m_hStdErrThread == INVALID_HANDLE_VALUE) return FALSE;
 
 	// Launch the thread that monitoring the child process.
 	m_hProcessThread = ::CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)staticProcessThread,
 		(LPVOID)this, 0, &dwThreadID);
-	if (! m_hProcessThread.IsValid()) return FALSE;
+	if ( m_hProcessThread == INVALID_HANDLE_VALUE) return FALSE;
 
 	// Virtual function to notify derived class that the child is started.
 	OnChildStarted(t2a(lpszCmdLine));
@@ -137,7 +137,7 @@ BOOL Redirector::StartChildProcess(LPCTSTR lpszCmdLine, BOOL bShowChildWindow)
 BOOL Redirector::IsChildRunning() const
 {
 	DWORD dwExitCode;
-	if (! m_hChildProcess.IsValid()) return FALSE;
+	if ( m_hChildProcess == INVALID_HANDLE_VALUE) return FALSE;
 	::GetExitCodeProcess(m_hChildProcess, &dwExitCode);
 	return (dwExitCode == STILL_ACTIVE) ? TRUE: FALSE;
 }
@@ -154,36 +154,21 @@ void Redirector::TerminateChildProcess()
 	// Check the process thread.
 	if (m_hProcessThread != NULL)
 	{
-		::WaitForSingleObject(m_hProcessThread, 1000);
+		TerminateProcess(m_hProcessThread,0);
 		m_hProcessThread = NULL;
 	}
-
-	// Close all child handles first.
-	m_hStdIn.Close();
-	m_hStdOut.Close();
-	m_hStdErr.Close();
-	Sleep(100);
-
-	// Close all parent handles.
-	m_hStdInWrite.Close();
-	m_hStdOutRead.Close();
-	m_hStdErrRead.Close();
-	Sleep(100);
-
 	// Stop the stdout read thread.
 	if (m_hStdOutThread != NULL)
 	{
-		if (! ::IsWinNT()) ::TerminateThread(m_hStdOutThread, 1);
-		::WaitForSingleObject(m_hStdOutThread, 1000);
-		m_hStdOutThread.Close();
+		if (! ::IsWinNT()) ::TerminateThread(m_hStdOutThread, 0);
+		CloseHandle(m_hStdOutThread);
 	}
 
 	// Stop the stderr read thread.
 	if (m_hStdErrThread != NULL)
 	{
-		if (!::IsWinNT()) ::TerminateThread(m_hStdErrThread, 1);
-		::WaitForSingleObject(m_hStdErrThread, 1000);
-		m_hStdErrThread.Close();
+		if (!::IsWinNT()) ::TerminateThread(m_hStdErrThread, 0);
+		CloseHandle(m_hStdErrThread);
 	}
 	Sleep(100);
 
@@ -196,11 +181,25 @@ void Redirector::TerminateChildProcess()
 	{
 		::TerminateProcess(m_hChildProcess, 1);
 		::WaitForSingleObject(m_hChildProcess, 1000);
-		m_hChildProcess.Close();
+		CloseHandle(m_hChildProcess);
 	}
 
+
+	// Close all child handles first.
+
+	CloseHandle(m_hStdIn);
+	CloseHandle(m_hStdOut);
+	CloseHandle(m_hStdErr);
+	Sleep(100);
+
+	// Close all parent handles.
+// 	CloseHandle(m_hStdInWrite);
+// 	CloseHandle(m_hStdOutRead);
+// 	CloseHandle(m_hStdErrRead);
+	Sleep(100);
+
 	// cleanup the exit event
-	m_hExitEvent.Close();
+	CloseHandle(m_hExitEvent);
 
 	m_bWorking = FALSE;
 }
@@ -219,6 +218,7 @@ BOOL Redirector::PrepAndLaunchRedirectedChild(LPCTSTR lpszCmdLine,
 	// Set up the start up info struct.
 	STARTUPINFO si = {0};
 	si.cb = sizeof(STARTUPINFO);
+	si.wShowWindow = SW_HIDE;
 	si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
 	si.hStdOutput = hStdOut;
 	si.hStdInput  = hStdIn;
@@ -237,23 +237,23 @@ BOOL Redirector::PrepAndLaunchRedirectedChild(LPCTSTR lpszCmdLine,
 	// This is made using an empty security descriptor. It is not the same
 	// as using a NULL pointer for the security attribute!
 
-	if (IsWinNT())
-	{
-		lpSD = ::GlobalAlloc(GPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
-		if (! ::InitializeSecurityDescriptor(lpSD, SECURITY_DESCRIPTOR_REVISION)) return FALSE;
-		if (! ::SetSecurityDescriptorDacl(lpSD, -1, 0, 0)) return FALSE;
-
-		lpSA = (LPSECURITY_ATTRIBUTES)::GlobalAlloc(GPTR, sizeof(SECURITY_ATTRIBUTES));
-		lpSA->nLength = sizeof(SECURITY_ATTRIBUTES);
-		lpSA->lpSecurityDescriptor = lpSD;
-		lpSA->bInheritHandle = TRUE;
-	}
+// 	if (IsWinNT())
+// 	{
+// 		lpSD = ::GlobalAlloc(GPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+// 		if (! ::InitializeSecurityDescriptor(lpSD, SECURITY_DESCRIPTOR_REVISION)) return FALSE;
+// 		if (! ::SetSecurityDescriptorDacl(lpSD, -1, 0, 0)) return FALSE;
+// 
+// 		lpSA = (LPSECURITY_ATTRIBUTES)::GlobalAlloc(GPTR, sizeof(SECURITY_ATTRIBUTES));
+// 		lpSA->nLength = sizeof(SECURITY_ATTRIBUTES);
+// 		lpSA->lpSecurityDescriptor = lpSD;
+// 		lpSA->bInheritHandle = TRUE;
+// 	}
 
 	// Try to spawn the process.
 	TCHAR tempCmdline[MAX_PATH * 2] = {0};
 	_tcscpy_s(tempCmdline, lpszCmdLine);
 	BOOL bResult = ::CreateProcess(NULL, tempCmdline, lpSA, NULL, TRUE,
-		CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+		NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
 
 	// Cleanup memory allocation
 	if (lpSA != NULL) ::GlobalFree(lpSA);

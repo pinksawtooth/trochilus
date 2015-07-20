@@ -28,9 +28,6 @@
     <Filter Include="comm\http">
       <UniqueIdentifier>{60dd0ce9-2ec6-4d46-a40d-69346d849108}</UniqueIdentifier>
     </Filter>
-    <Filter Include="module">
-      <UniqueIdentifier>{59a90d9f-b3ee-45b0-9a74-1c16c68c0737}</UniqueIdentifier>
-    </Filter>
     <Filter Include="pub">
       <UniqueIdentifier>{fcc7f08f-b64d-4a9b-b9e6-85c45a347c48}</UniqueIdentifier>
     </Filter>
@@ -103,12 +100,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\base\include\AutoCleanup.h">
       <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="Module.h">
-      <Filter>module</Filter>
-    </ClInclude>
-    <ClInclude Include="ModuleManager.h">
-      <Filter>module</Filter>
     </ClInclude>
     <ClInclude Include="..\..\pub\ModuleInterface.h">
       <Filter>pub</Filter>
@@ -228,12 +219,6 @@
     </ClCompile>
     <ClCompile Include="CommManager.cpp">
       <Filter>comm</Filter>
-    </ClCompile>
-    <ClCompile Include="Module.cpp">
-      <Filter>module</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleManager.cpp">
-      <Filter>module</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\base\include\socket\MySocket.cpp">
       <Filter>include\socket</Filter>
