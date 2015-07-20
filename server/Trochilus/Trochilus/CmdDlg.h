@@ -1,6 +1,6 @@
 #pragma once
 #include "afxwin.h"
-
+#include "mfcresize/Resizer.h"
 
 // CCmdDlg ¶Ô»°¿ò
 
@@ -33,8 +33,10 @@ public:
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnEnChangeEditResult();
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 
 	BOOL IsDisable(CString strCmd);
+	void InitResize();
 
 	void InitDisable();
 public:
@@ -42,6 +44,8 @@ public:
 	UINT m_nCurSel;
 	CEdit m_editResult;
 	CString m_strResult;
+
+	CResizer m_resizer;
 
 	CStringArray m_arrDis;
 };

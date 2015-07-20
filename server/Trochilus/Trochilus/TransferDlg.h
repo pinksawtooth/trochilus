@@ -2,6 +2,7 @@
 #include "afxcmn.h"
 #include "thread/RepeatTask.h"
 #include "ProgressListCtrl.h"
+#include "mfcresize/Resizer.h"
 
 class CTransferDlg : public CDialogEx,public IModule
 {
@@ -24,6 +25,7 @@ public:
 	//初始化界面控件和数据
 	void InitView();
 	void InitData();
+	void InitResize();
 	virtual BOOL OnInitDialog();
 
 	//定时检查文件传输状态
@@ -42,10 +44,12 @@ public:
 	RepeatTask m_checkTask;
 	CListCtrl m_transList;
 	CImageList m_ImageList;
+	CResizer m_resizer;
 
 	//响应窗口销毁消息
 	afx_msg void OnDestroy();
 	afx_msg void OnBnClickedButtonStart();
 	afx_msg void OnBnClickedButtonStop();
 	afx_msg void OnBnClickedButtonDelete();
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 };

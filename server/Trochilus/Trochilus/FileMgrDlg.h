@@ -2,6 +2,7 @@
 #include "afxcmn.h"
 #include "IModule.h"
 #include "resource.h"
+#include "mfcresize/Resizer.h"
 
 class CFileMgrDlg : public CDialogEx, public IModule
 {
@@ -25,6 +26,7 @@ protected:
 	virtual BOOL OnInitDialog();
 	void InitView();
 	void InitData();
+	void InitResize();
 
 	//设置对话框字段名
 	void SetColumn(CListCtrl* list,LPTSTR text,int nCol,int nWidth);
@@ -62,6 +64,7 @@ public:
 	CriticalSection m_csList;
 	CImageList m_ImageList;
 
+	CResizer m_resizer;
 private:
 	//远程目录列表双击
 	afx_msg void OnNMDblclkListRdic(NMHDR *pNMHDR, LRESULT *pResult);
@@ -84,4 +87,6 @@ public:
 	afx_msg void OnBnClickedButtonDelete();
 	afx_msg void OnNMRClickListRfile(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnClickDownFile();
+	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 };

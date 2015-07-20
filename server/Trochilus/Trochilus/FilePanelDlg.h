@@ -1,5 +1,6 @@
 #pragma once
 #include "afxcmn.h"
+#include "mfcresize/Resizer.h"
 #include "FileMgrDlg.h"
 #include "TransferDlg.h"
 #include "CmdDlg.h"
@@ -25,23 +26,25 @@ protected:
 public:
 	//初始化界面和工作状态
 	void InitView();
-	void InitData();
-	void InitInsideModule();
+	void InitTab();
 	virtual BOOL OnInitDialog();
+
+	void InitResize();
+	CResizer m_resizer;
 
 	//处理模块状态信息
 	void HandleMsgNotify(UINT nType, LPCTSTR lpContext);
 
 	//当Tab框选择改变
 	afx_msg void OnTcnSelchangeTabPanel(NMHDR *pNMHDR, LRESULT *pResult);
-
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 	//设置客户端ID
 	void SetClientID(LPCTSTR clientid)
 	{
 		m_clientid = clientid;
 		
-		FileDlg.InitModule(clientid);
-		TransDlg.InitModule(clientid);
+		m_FileMgr.InitModule(clientid);
+		m_TransInfo.InitModule(clientid);
 
 	}
 
@@ -55,8 +58,8 @@ private:
 	CString m_clientid;
 	CriticalSection m_csModuleMap;
 
-	CFileMgrDlg FileDlg;
-	CTransferDlg TransDlg;
+	CFileMgrDlg m_FileMgr;
+	CTransferDlg m_TransInfo;
 
 public:
 	afx_msg void OnClose();

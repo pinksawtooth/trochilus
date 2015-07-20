@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include "mfcresize/Resizer.h"
 #include "Trochilus.h"
 #include "FilePanelDlg.h"
 #include "afxdialogex.h"
@@ -30,63 +31,72 @@ void CFilePanelDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CFilePanelDlg, CDialogEx)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB_PANEL, &CFilePanelDlg::OnTcnSelchangeTabPanel)
 	ON_WM_CLOSE()
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
 // CPanelDlg 消息处理程序
-void CFilePanelDlg::InitInsideModule()
+void CFilePanelDlg::InitTab()
 {
+	m_TabCtrl.InsertItem(0,_T("File Manager"));
+	m_TabCtrl.InsertItem(1,_T("Transfer"));
+
 	CRect rs;
 	m_TabCtrl.GetClientRect(&rs);
 	rs.top += 21;
 
-	m_TabCtrl.InsertItem(0,_T("File Manager"));
-	m_TabCtrl.InsertItem(1,_T("Transfer"));
-
 	CLIENT_INFO info;
 	GetClientInfo(m_clientid,&info);
 
-	FileDlg.Create(IDD_DIALOG_FILE);
-	TransDlg.Create(IDD_DIALOG_TRANSFER);
+	m_FileMgr.Create(IDD_DIALOG_FILE,&m_TabCtrl);
+	m_FileMgr.MoveWindow(&rs);
 
-	CWnd* pWnd = CWnd::FromHandle(m_TabCtrl.GetSafeHwnd());
+	m_TransInfo.Create(IDD_DIALOG_TRANSFER,&m_TabCtrl);
+	m_TransInfo.MoveWindow(&rs);
 
-	FileDlg.SetParent(pWnd);
-	TransDlg.SetParent(pWnd);
-
-	TransDlg.MoveWindow(&rs);
-	FileDlg.MoveWindow(&rs);
-
-	FileDlg.ShowWindow(TRUE);
-	TransDlg.ShowWindow(FALSE);
+	m_FileMgr.ShowWindow(TRUE);
 }
 
-
-void CFilePanelDlg::InitData()
+void CFilePanelDlg::InitResize()
 {
-	InitInsideModule();
+	static CResizer::CBorderInfo s_bi[] = {
+		{IDC_TAB_PANEL,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eTop},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}}
+	};
+
+	const int nSize = sizeof(s_bi)/sizeof(s_bi[0]);
+	m_resizer.Init(m_hWnd, NULL, s_bi, nSize);
 }
 
 void CFilePanelDlg::InitView()
 {	
+	InitTab();
+
 	CString strTitle;
 	CLIENT_INFO info;
 
-	GetClientInfo(m_clientid,&info);
+	BOOL ret = GetClientInfo(m_clientid,&info);
 
-	IN_ADDR connectIP;
-	connectIP.S_un.S_addr = info.connectIP;
+	if (ret )
+	{
+		IN_ADDR connectIP;
+		connectIP.S_un.S_addr = info.connectIP;
 
-	strTitle.Format(_T("Control Panel [%s][%s]"),info.computerName,CString(inet_ntoa(connectIP)).GetBuffer());
+		strTitle.Format(_T("Control Panel [%s][%s]"),info.computerName,CString(inet_ntoa(connectIP)).GetBuffer());
 
-	SetWindowText(strTitle);
+		SetWindowText(strTitle);
+	}
 }
 
 BOOL CFilePanelDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 	InitView();
-	InitData();
+	InitResize();
+
 	return TRUE;
 }
 
@@ -96,13 +106,13 @@ void CFilePanelDlg::OnTcnSelchangeTabPanel(NMHDR *pNMHDR, LRESULT *pResult)
 
 	if (0 == nSel)
 	{
-		FileDlg.ShowWindow(TRUE);
-		TransDlg.ShowWindow(FALSE);
+		m_FileMgr.ShowWindow(TRUE);
+		m_TransInfo.ShowWindow(FALSE);
 	}
 	else
 	{
-		FileDlg.ShowWindow(FALSE);
-		TransDlg.ShowWindow(TRUE);
+		m_FileMgr.ShowWindow(FALSE);
+		m_TransInfo.ShowWindow(TRUE);
 	}
 	*pResult = 0;
 }
@@ -110,4 +120,22 @@ void CFilePanelDlg::OnTcnSelchangeTabPanel(NMHDR *pNMHDR, LRESULT *pResult)
 void CFilePanelDlg::OnClose()
 {
 	CDialogEx::OnClose();
+}
+void CFilePanelDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+
+	CRect rs;
+
+	m_resizer.Move();
+
+	if (m_TabCtrl.m_hWnd)
+	{
+		m_TabCtrl.GetClientRect(&rs);
+		rs.top += 21;
+
+		m_FileMgr.MoveWindow(rs);
+		m_TransInfo.MoveWindow(rs);
+	}
+
 }

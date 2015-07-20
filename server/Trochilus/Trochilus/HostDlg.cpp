@@ -162,4 +162,3 @@ void CHostDlg::OnSize(UINT nType, int cx, int cy)
 	CDialogEx::OnSize(nType, cx, cy);
 	m_resizer.Move();
 }
-

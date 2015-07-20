@@ -34,6 +34,7 @@ BEGIN_MESSAGE_MAP(CTransferDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_STARTTRANS, &CTransferDlg::OnBnClickedButtonStart)
 	ON_BN_CLICKED(IDC_BUTTON_STOP, &CTransferDlg::OnBnClickedButtonStop)
 	ON_BN_CLICKED(IDC_BUTTON_DELETE, &CTransferDlg::OnBnClickedButtonDelete)
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 void CTransferDlg::InitView()
@@ -150,6 +151,7 @@ BOOL CTransferDlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	InitView();
+	InitResize();
 	InitData();
 
 	return TRUE;
@@ -219,4 +221,24 @@ void CTransferDlg::OnBnClickedButtonDelete()
 	m_transList.DeleteItem(index);
 
 	delete pData;
+}
+void CTransferDlg::InitResize()
+{
+
+	static CResizer::CBorderInfo s_bi[] = {
+		{IDC_LIST_TRANSFER,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eTop},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}}
+	};
+
+	const int nSize = sizeof(s_bi)/sizeof(s_bi[0]);
+	m_resizer.Init(m_hWnd, NULL, s_bi, nSize);
+}
+
+void CTransferDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+	m_resizer.Move();
 }

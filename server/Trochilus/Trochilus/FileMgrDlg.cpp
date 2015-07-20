@@ -47,6 +47,8 @@ BEGIN_MESSAGE_MAP(CFileMgrDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_DELETE, &CFileMgrDlg::OnBnClickedButtonDelete)
 	ON_NOTIFY(NM_RCLICK, IDC_LIST_RFILE, &CFileMgrDlg::OnNMRClickListRfile)
 	ON_COMMAND(ID_RFPOP_DOWN, &CFileMgrDlg::OnClickDownFile)
+	ON_WM_SIZE()
+	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
 void CFileMgrDlg::HandleModuleMsg( LPCTSTR clientid,UINT nMsg, LPVOID lpContext, LPVOID lpParameter )
@@ -216,15 +218,15 @@ void CFileMgrDlg::InitView()
 	m_lDicList.SetImageList(&m_ImageList,LVSIL_SMALL);
 
 	m_rFileList.SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);	
-	m_rFileList.InsertColumn(0,_T("File Name"),LVCFMT_CENTER,150,-1);
+	m_rFileList.InsertColumn(0,_T("File Name"),LVCFMT_CENTER,300,-1);
 	m_rFileList.InsertColumn(1,_T("File Size"),LVCFMT_CENTER,150,-1);
-	m_rFileList.InsertColumn(2,_T("Edit Time"),LVCFMT_CENTER,200,-1);
+	m_rFileList.InsertColumn(2,_T("Edit Time"),LVCFMT_CENTER,300,-1);
 	m_rFileList.SetImageList(&m_ImageList,LVSIL_SMALL);
 
 	m_lFileList.SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);	
-	m_lFileList.InsertColumn(0,_T("File Name"),LVCFMT_CENTER,150,-1);
+	m_lFileList.InsertColumn(0,_T("File Name"),LVCFMT_CENTER,300,-1);
 	m_lFileList.InsertColumn(1,_T("File Size"),LVCFMT_CENTER,150,-1);
-	m_lFileList.InsertColumn(2,_T("Edit Time"),LVCFMT_CENTER,200,-1);
+	m_lFileList.InsertColumn(2,_T("Edit Time"),LVCFMT_CENTER,300,-1);
 	m_lFileList.SetImageList(&m_ImageList,LVSIL_SMALL);
 }
 
@@ -236,9 +238,8 @@ void CFileMgrDlg::InitData()
 BOOL CFileMgrDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
-
 	InitView();
-	
+	InitResize();
 	InitData();
 
 	return TRUE;
@@ -564,4 +565,88 @@ void CFileMgrDlg::OnClickDownFile()
 
 	//发送下载消息
 
+}
+void CFileMgrDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+	m_resizer.Move();
+}
+
+void CFileMgrDlg::InitResize()
+{
+
+	static CResizer::CBorderInfo s_bi[] = {
+		{IDC_BUTTON_LUPDIC,
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_BUTTON_LREFRESH,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_LIST_LDIC,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_LIST_LFILE,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_STATIC_DIC1,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_EDIT_LCURDIC,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_BUTTON_UPLOAD,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_BUTTON_DOWN,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_LIST_RDIC,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eTop},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_LIST_RFILE,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eTop},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}}
+// 		,
+// 		{IDC_STATIC_R,    
+// 		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+// 		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+// 		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+// 		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}}
+// 		,
+// 		{IDC_STATIC_L,    
+// 		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+// 		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+// 		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+// 		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}}
+	};
+
+	const int nSize = sizeof(s_bi)/sizeof(s_bi[0]);
+	m_resizer.Init(m_hWnd, NULL, s_bi, nSize);
+}
+
+void CFileMgrDlg::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+
+	__super::OnSysCommand(nID, lParam);
 }

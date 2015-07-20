@@ -61,6 +61,7 @@ BEGIN_MESSAGE_MAP(CCmdDlg, CDialogEx)
 	ON_WM_CLOSE()
 	ON_WM_CTLCOLOR()
 	ON_EN_CHANGE(IDC_EDIT_RESULT, &CCmdDlg::OnEnChangeEditResult)
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -90,20 +91,25 @@ BOOL CCmdDlg::OnInitDialog()
 	CString strTitle;
 	CLIENT_INFO info;
 
-	GetClientInfo(m_clientid,&info);
+	BOOL ret = GetClientInfo(m_clientid,&info);
 
-	IN_ADDR connectIP;
-	connectIP.S_un.S_addr = info.connectIP;
+	if (ret )
+	{
+		IN_ADDR connectIP;
+		connectIP.S_un.S_addr = info.connectIP;
 
-	strTitle.Format(_T("Commander [%s][%s]"),info.computerName,CString(inet_ntoa(connectIP)).GetBuffer());
+		strTitle.Format(_T("Commander [%s][%s]"),info.computerName,CString(inet_ntoa(connectIP)).GetBuffer());
 
-	SetWindowText(strTitle);
-
+		SetWindowText(strTitle);
+	}
 
 	__super::OnInitDialog();
 
 	InitDisable();
 	m_bkBrush.CreateSolidBrush(RGB(0,0,0));
+
+
+	InitResize();
 
 	EnableButton(FALSE);
 
@@ -157,10 +163,10 @@ HBRUSH CCmdDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 void CCmdDlg::InitDisable()
 {
-	m_arrDis.Add(_T("nc"));
-	m_arrDis.Add(_T("lcx"));
-	m_arrDis.Add(_T("hd"));
-	m_arrDis.Add(_T("cmd"));
+// 	m_arrDis.Add(_T("nc"));
+// 	m_arrDis.Add(_T("lcx"));
+// 	m_arrDis.Add(_T("hd"));
+// 	m_arrDis.Add(_T("cmd"));
 }
 
 BOOL CCmdDlg::IsDisable( CString strCmd )
@@ -260,4 +266,33 @@ void CCmdDlg::OnEnChangeEditResult()
 	int nSize = m_editResult.GetWindowTextLength();
 	if (nSize < m_nCurSel)
 		m_nCurSel = nSize;
+}
+void CCmdDlg::InitResize()
+{
+
+	static CResizer::CBorderInfo s_bi[] = {
+		{IDC_EDIT_RESULT,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eLeft},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eTop},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_BUTTON_OPEN,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}},
+		{IDC_BUTTON_CLOSE,    
+		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eRight},
+		{CResizer::eFixed, IDC_MAIN, CResizer::eBottom}}
+	};
+
+	const int nSize = sizeof(s_bi)/sizeof(s_bi[0]);
+	m_resizer.Init(m_hWnd, NULL, s_bi, nSize);
+}
+void CCmdDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+	m_resizer.Move();
 }

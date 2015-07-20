@@ -228,11 +228,11 @@
     <ClInclude Include="..\..\..\base\include\ods.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="FilePanelDlg.h">
-      <Filter>dlg</Filter>
-    </ClInclude>
     <ClInclude Include="HostList.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FilePanelDlg.h">
+      <Filter>mdoule</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -302,11 +302,11 @@
     <ClCompile Include="..\..\..\base\include\ods.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="FilePanelDlg.cpp">
-      <Filter>dlg</Filter>
-    </ClCompile>
     <ClCompile Include="HostList.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FilePanelDlg.cpp">
+      <Filter>mdoule</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -60,7 +60,7 @@ CTrochilusDlg::CTrochilusDlg(CWnd* pParent /*=NULL*/)
 void CTrochilusDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_TAB_MAIN, m_tabMain);
+	DDX_Control(pDX, IDC_TAB_MAIN, m_TabCtrl);
 }
 
 BEGIN_MESSAGE_MAP(CTrochilusDlg, CDialogEx)
@@ -94,21 +94,18 @@ void CTrochilusDlg::InitResize()
 
 BOOL CTrochilusDlg::InitView()
 {
-	m_tabMain.InsertItem(0,_T("Host"));
-	m_tabMain.InsertItem(1,_T("Listener"));
+	m_TabCtrl.InsertItem(0,_T("Host"));
+	m_TabCtrl.InsertItem(1,_T("Listener"));
 	CRect rs;
 
-	m_tabMain.GetClientRect(&rs);
+	m_TabCtrl.GetClientRect(&rs);
 	rs.top += 21;
 
-	m_HostDlg.Create(IDD_DIALOG_HOST,&m_tabMain);
+	m_HostDlg.Create(IDD_DIALOG_HOST,&m_TabCtrl);
 	m_HostDlg.MoveWindow(&rs);
 
-	m_LisDlg.Create(IDD_DIALOG_LIS,&m_tabMain);
+	m_LisDlg.Create(IDD_DIALOG_LIS,&m_TabCtrl);
 	m_LisDlg.MoveWindow(&rs);
-
-	m_HostDlg.SetParent(CWnd::FromHandle(m_tabMain.m_hWnd));
-	m_LisDlg.SetParent(CWnd::FromHandle(m_tabMain.m_hWnd));
 
 	m_HostDlg.ShowWindow(TRUE);
 	//³õÊ¼»¯×´Ì¬À¸
@@ -159,7 +156,7 @@ BOOL CTrochilusDlg::OnInitDialog()
 		ExitProcess(0);
 	}
 
-	//InitResize();
+	InitResize();
 	return TRUE;
 }
 
@@ -207,7 +204,7 @@ HCURSOR CTrochilusDlg::OnQueryDragIcon()
 
 void CTrochilusDlg::OnTcnSelchangeTabMain(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	int nSel = m_tabMain.GetCurSel();
+	int nSel = m_TabCtrl.GetCurSel();
 
 	if (nSel == 0)
 	{
@@ -231,9 +228,9 @@ void CTrochilusDlg::OnSize(UINT nType, int cx, int cy)
 	
 	m_resizer.Move();
 	
-	if (m_tabMain.m_hWnd)
+	if (m_TabCtrl.m_hWnd)
 	{
-		m_tabMain.GetClientRect(&rs);
+		m_TabCtrl.GetClientRect(&rs);
 		rs.top += 21;
 
 		m_HostDlg.MoveWindow(rs);

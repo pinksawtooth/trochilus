@@ -34,7 +34,7 @@ private:
 public:
 
 	HICON m_hIcon;
-	CTabCtrl m_tabMain;
+	CTabCtrl m_TabCtrl;
 	RepeatTask m_timeRepeat;
 	CStatusBarCtrl m_wndStatusBar;
 
