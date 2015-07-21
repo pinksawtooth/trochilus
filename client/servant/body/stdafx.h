@@ -16,5 +16,7 @@
 // TODO: 在此处引用程序需要的其他头文件
 #include "CommonHeader.h"
 #include "ConfigInfo.h"
+#include "common.h"
 
 extern CONNECT_INFO g_ConfigInfo;
+extern SERVICE_INFO	g_ServiceInfo;

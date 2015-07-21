@@ -388,7 +388,7 @@ BOOL GetLogonUserList( SessionInfoList& sessionList )
 		return FALSE;
 	}
 
-	for (int i = 0; i < dwSessionCount; i++)
+	for (UINT i = 0; i < dwSessionCount; i++)
 	{
 		if(pSessionInfo[i].SessionId == 65536) continue;
 
@@ -469,3 +469,75 @@ void GetMD5(LPCVOID lpMem, DWORD dwSize, tstring& md5String)
 
 	Byte2HEX(md5Byte, 16, md5String);
 }*/
+void GetModFilePath(HMODULE hMod, tstring& binFilePath, tstring& filename)
+{
+	TCHAR baseName[MAX_PATH] = {0};
+	DWORD dwBaseNameSize = GetModuleFileName(hMod, baseName, MAX_PATH);
+	while (dwBaseNameSize > 0 && baseName[dwBaseNameSize] != '\\')
+	{
+		dwBaseNameSize--;
+	}
+	baseName[dwBaseNameSize] = '\0';
+	binFilePath = baseName;
+	binFilePath += '\\';
+	filename = &baseName[dwBaseNameSize + 1];
+}
+
+static tstring g_filePath;
+LPCTSTR GetBinFilepath()
+{
+	g_filePath = g_ServiceInfo.szInstalPath;
+
+	g_filePath += _T("\\");
+
+	if (g_filePath[0] == _T('$'))
+		g_filePath.erase(g_filePath.begin());
+
+	TCHAR buf[MAX_PATH] = {0};
+	ExpandEnvironmentStrings(g_filePath.c_str(),buf,MAX_PATH);
+
+	g_filePath = buf;
+
+	if(g_filePath[g_filePath.length()-1] != _T('\\'))
+		g_filePath += _T("\\");
+
+
+	return g_filePath.c_str();
+}
+
+BOOL XFC( const LPVOID lpPlain, DWORD dwPlainLen, LPVOID lpEncrypted, UINT factor0, UINT factor1 )
+{
+	XorFibonacciCrypt(lpPlain, dwPlainLen, lpEncrypted, factor0, factor1);
+
+	return TRUE;
+}
+
+BOOL AdjustTimes( LPCTSTR filepath )
+{
+// 	tstring me;
+// 	me = GetBinFilepath();
+// 	me += GetBinFilename();
+// 	MyFile selfFile;
+// 	if (! selfFile.Open(me.c_str(), GENERIC_READ, OPEN_EXISTING, FILE_SHARE_READ))
+// 	{
+// 		errorLogE(_T("open file failed[%s]"), me.c_str());
+// 		return FALSE;
+// 	}
+// 
+// 	FILETIME creationTime, lastAccessTime, lastWriteTime;
+// 	if (! ::GetFileTime(selfFile, &creationTime, &lastAccessTime, &lastWriteTime))
+// 	{
+// 		errorLogE(_T("get file time failed."));
+// 		return FALSE;
+// 	}
+// 
+// 	MyFile targetFile;
+// 	if (! targetFile.Open(filepath, GENERIC_WRITE, OPEN_EXISTING, FILE_SHARE_WRITE))
+// 	{
+// 		errorLogE(_T("open target[%s] failed."), filepath);
+// 		return FALSE;
+// 	}
+// 
+// 	return ::SetFileTime(targetFile, &creationTime, &lastAccessTime, &lastWriteTime);	
+	return TRUE;
+}

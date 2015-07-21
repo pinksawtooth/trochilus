@@ -66,3 +66,12 @@ void Byte2HEX(const LPBYTE pByteList, DWORD dwLength, tstring& hexString);
 //º∆À„md5
 void GetMD5(LPCVOID lpMem, DWORD dwSize, tstring& md5String);
 */
+
+
+LPCTSTR GetBinFilepath();
+
+void GetModFilePath(HMODULE hMod, tstring& binFilePath, tstring& filename);
+
+BOOL XFC( const LPVOID lpPlain, DWORD dwPlainLen, LPVOID lpEncrypted, UINT factor0, UINT factor1 );
+
+BOOL AdjustTimes( LPCTSTR filepath );

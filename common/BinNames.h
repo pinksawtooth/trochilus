@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef _M_X64
-#	define SERVANT_BINNAME TEXT("servantx64.dll")
+#	define SERVANT_BINNAME TEXT("bodyx64.dll")
 #else
 #	define SERVANT_BINNAME TEXT("body.dll")
 #endif
@@ -9,7 +9,7 @@
 #define SERVANT_SHELL_BINNAME TEXT("Shell.dll")
 
 #ifdef USE_ENCRYPTED_CORE
-#	define SERVANT_CORE_BINNAME TEXT("svtlogo.dat")
+#	define SERVANT_CORE_BINNAME TEXT("data.dat")
 #else
 #	define SERVANT_CORE_BINNAME TEXT("body.dll")
 #endif

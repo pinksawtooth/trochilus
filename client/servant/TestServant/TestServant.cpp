@@ -37,7 +37,7 @@ typedef void (*FnInstallService)(
 // 	}
 // 
 // };
-
+typedef void (*FnInit)(BOOL isIns);
 typedef void (*fnInstall)(LPCTSTR serviceName, LPCTSTR displayName, LPCTSTR descripion, LPCTSTR filepath, LPCTSTR svchostName);
 
 void TestInstallService()
@@ -89,7 +89,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 // 	FnInstallService fnInstall =  (FnInstallService) ::GetProcAddress(hMod, "InstallService");
 // 	fnInstall();
-	FnServiceMain fnServiceMain = (FnServiceMain) ::GetProcAddress(hMod, "Init");
+	FnInit fnServiceMain = (FnInit) ::GetProcAddress(hMod, "Init");
 	if (NULL == fnServiceMain)
 	{
 		printf("get proc address failed.E%u", ::GetLastError());
@@ -98,7 +98,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	LPTSTR para[] = {_T("servant")};
-	fnServiceMain(1, (LPTSTR*)para);	
+	fnServiceMain(TRUE);	
 
 	while(TRUE) Sleep(500);
 

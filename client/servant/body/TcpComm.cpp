@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "socket/MySocket.h"
 #include "TcpComm.h"
-#include "../shell/Exports.h"
 
 TcpComm::TcpComm(BOOL isSecure):
 m_xorKey1(0),

@@ -5,7 +5,6 @@
 #include "MessageDefines.h"
 #include "rsa/librsa.h"
 #include "vtcp/vtcp.h"
-#include "../shell/Exports.h"
 
 class UdpComm: public IComm
 {

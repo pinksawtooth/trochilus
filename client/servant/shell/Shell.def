@@ -4,14 +4,8 @@ EXPORTS
 	Init					@1
 	Main					@2
 	GetLocalPath			@3
-	SendMsg					@4
-	XFC						@5
-	GetClientID				@6
-	Exit					@7
-	SD						@8
-	ReplaceIIDName			@9
-	AdjustTimes				@10
-	CheckDT					@11
-	GetSvrInfo				@12
-	InitSvr					@13
-	InitRun					@14
+	XFC						@4
+	Exit					@5
+	SD						@6
+	AdjustTimes				@8
+	CheckDT					@9

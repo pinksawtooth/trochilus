@@ -18,8 +18,6 @@
 #include "ConfigInfo.h"
 #include "CommNames.h"
 
-extern CONNECT_INFO g_ConfigInfo;
-extern SERVICE_INFO g_ServiceInfo;
 extern HMODULE		g_hServantshell;
 
 extern tstring		g_locationDir;
