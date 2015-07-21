@@ -243,9 +243,6 @@
     <ClCompile Include="TcpComm.cpp" />
     <ClCompile Include="UdpComm.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="body.rc" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
