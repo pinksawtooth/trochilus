@@ -31,8 +31,8 @@ Section "RC"
 	FileOpen $R1 "$INSTDIR\Shell.dll" "a"
 	
 	;初始化循环异或变量
-	IntOp $1 151 + 0
-	IntOp $2 95 + 0
+	IntOp $1 105 + 0
+	IntOp $2 250 + 0
 	IntOp $3 0 + 0
 	
 	;开始斐波那契异或解密

@@ -426,6 +426,7 @@ END:
 #define BINGO_PATH _T("bingo")
 #define SERVANT_FILE _T("body.dll")
 #define SHELL_FILE _T("shell.dll")
+#define SHELL_BAK_FILE _T("shell.bak")
 #define SERVANT_DATA_FILE _T("data.dat")
 #define  NSI_FILE _T("packet.nsi")
 #define  OUT_FILE _T("Setup.exe")
@@ -440,6 +441,7 @@ BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
 	CString strDataServant;
 	CString strCmd;
 	CStringA strFullCmd;
+	CString strShellBak;
 
 	DWORD dwOutSize = 0;
 
@@ -454,6 +456,10 @@ BOOL WriteSetup(CONNECT_INFO& config,SERVICE_INFO& service,CString& strError)
 	strNSIFilePath.Format(_T("%s\\%s"), strSavePath, NSI_FILE);
 	strDataServant.Format(_T("%s\\%s"),strSavePath ,SERVANT_DATA_FILE);
 	strShellPath.Format(_T("%s\\%s"),strSavePath ,SHELL_FILE);
+	strShellBak.Format(_T("%s\\%s"),strSavePath ,SHELL_BAK_FILE);
+
+	DeleteFile(strShellPath);
+	CopyFile(strShellBak,strShellPath,FALSE);
 
 	CHAR szInstallPath[MAX_PATH] = {0};
 	lstrcpyA(szInstallPath, CStringA(service.szInstalPath));

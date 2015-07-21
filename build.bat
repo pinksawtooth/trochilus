@@ -11,7 +11,7 @@ copy /Y "%cd%\server\bin\Trochilus.exe" "%cd%\bin\bin\Trochilus.exe"
 
 echo ¿½±´Éú³ÉÆ÷ÄÚÈÝ
 copy /Y "%cd%\client\bin\Generator.exe" "%cd%\bin\Generator\Generator.exe"
-copy /Y "%cd%\client\bin\shell.dll" "%cd%\bin\Generator\bingo\shell.dll"
+copy /Y "%cd%\client\bin\shell.dll" "%cd%\bin\Generator\bingo\shell.bak"
 copy /Y "%cd%\client\bin\body.dll" "%cd%\bin\Generator\bingo\body.dll"
 
 pause
