@@ -40,7 +40,6 @@ DWORD MyFile::Read( DWORD dwToRead, ByteBuffer& buffer )
 	}
 	else
 	{
-		buffer.Free();
 		return 0;
 	}
 }
@@ -66,7 +65,6 @@ BOOL MyFile::ReadAll( ByteBuffer& buffer )
 	DWORD dwFileSize = ::GetFileSize(m_handle, NULL);
 	if (0 == dwFileSize) 
 	{
-		buffer.Free();
 		return TRUE;
 	}
 
@@ -87,7 +85,6 @@ BOOL MyFile::ReadAll( ByteBuffer& buffer )
 	}
 	else
 	{
-		buffer.Free();
 		return FALSE;
 	}
 }

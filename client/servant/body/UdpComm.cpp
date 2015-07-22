@@ -12,6 +12,8 @@ UdpComm::UdpComm(BOOL isSecure):m_isConnected(FALSE),
 	m_xorKey2(0),
 	m_isSecure(FALSE)
 {
+	m_sock = VTCP_INVALID_SOCKET;
+
 	m_vtcp.MemLoadLibrary(mem_vtcp,sizeof(mem_vtcp));
 
 	m_vsend       =	(_vtcp_send)		m_vtcp.MemGetProcAddress("vtcp_send");
@@ -36,7 +38,8 @@ UdpComm::UdpComm(BOOL isSecure):m_isConnected(FALSE),
 
 UdpComm::~UdpComm(void)
 {
-	m_vclose(m_sock);
+	if (m_sock != VTCP_INVALID_SOCKET)
+		m_vclose(m_sock);
 }
 
 BOOL UdpComm::SendAll(VTCP_SOCKET s,LPCVOID lpBuf, int nBufLen)
@@ -129,10 +132,7 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 		buffer.Alloc(recvHead.nSize);
 
 		if (! ReceiveAll(m_sock,(LPBYTE)buffer,recvHead.nSize))
-		{
-			buffer.Free();
 			break;
-		}
 
 		//¸´ÖÆÊý¾Ý
 		*pRecvData = Alloc(recvHead.nSize);
@@ -141,8 +141,6 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 		if(m_isSecure)
 			XFC(*pRecvData,recvHead.nSize,*pRecvData,m_xorKey1,m_xorKey2);
-
-		buffer.Free();
 
 		ret = TRUE;
 
@@ -162,6 +160,12 @@ BOOL UdpComm::Connect( ULONG targetIP,int port )
 	hints.sin_family = AF_INET;
 	hints.sin_addr.s_addr = targetIP;
 	hints.sin_port = htons(port);
+
+	if (m_sock != VTCP_INVALID_SOCKET)
+	{
+		m_vclose(m_sock);
+		m_sock = VTCP_INVALID_SOCKET;
+	}
 
 	m_sock = m_vsocket(AF_INET,SOCK_DGRAM,0);
 

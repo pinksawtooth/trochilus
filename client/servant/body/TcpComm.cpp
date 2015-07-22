@@ -5,6 +5,7 @@
 TcpComm::TcpComm(BOOL isSecure):
 m_xorKey1(0),
 m_xorKey2(0),
+m_isConnected(FALSE),
 m_isSecure(FALSE)
 {
 	srand(GetTickCount());
@@ -19,11 +20,6 @@ TcpComm::~TcpComm()
 
 }
 
-BOOL TcpComm::Send( ULONG targetIP, const LPBYTE pData, DWORD dwSize )
-{
-	return Send(m_sock, targetIP, pData, dwSize);
-}
-
 BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendSize, LPBYTE* pRecvData, DWORD& dwRecvSize )
 {
 	TCP_HEADER sendHead;
@@ -31,9 +27,11 @@ BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 	sendHead.nSize = dwSendSize;
 	BOOL ret  = FALSE;
 
+	ByteBuffer buffer;
+
 	do 
 	{
-		ret = Send(m_sock, targetIP, (PBYTE)&sendHead, sizeof(TCP_HEADER));
+		ret = Send( targetIP, (PBYTE)&sendHead, sizeof(TCP_HEADER));
 
 		if (!ret)
 			break;;
@@ -41,7 +39,7 @@ BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 		if (m_isSecure)
 			XFC(pSendData,dwSendSize,pSendData,m_xorKey1,m_xorKey2);
 
-		ret = Send(m_sock, targetIP, pSendData, dwSendSize);
+		ret = Send( targetIP, pSendData, dwSendSize);
 
 		if (!ret)
 			break;
@@ -53,16 +51,11 @@ BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 		if ( !ret )
 			break;
 
-
-		ByteBuffer buffer;
 		buffer.Alloc(recvHead.nSize);
 		ret = m_sock.ReceiveAll(buffer,recvHead.nSize);
 
 		if (!ret)
-		{
-			buffer.Free();
 			break;
-		}
 
 		//¸´ÖÆÊý¾Ý
 		*pRecvData = Alloc(recvHead.nSize);
@@ -72,40 +65,39 @@ BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 		if(m_isSecure)
 			XFC(*pRecvData,recvHead.nSize,*pRecvData,m_xorKey1,m_xorKey2);
 
-		buffer.Free();
-
 	} while (FALSE);
-	
 
-	if ( !ret )
-		m_sock.Close();
+	m_isConnected = ret;
 
 	return ret;
 }
 
-BOOL TcpComm::Connect( ULONG targetIP, MySocket& sock )
+BOOL TcpComm::Connect( ULONG targetIP )
 {
 	BOOL ret = FALSE;
 
-	sock.Close();
+	if ( (SOCKET)m_sock != INVALID_SOCKET )
+		m_sock.Close();
 
 	do 
 	{
-		if (! sock.Create(TRUE))
+		if (! m_sock.Create(TRUE))
 		{
 			errorLogE(_T("create socket failed."));
 			break;
 		}
 
-		if (! sock.Connect(targetIP, g_ConfigInfo.nPort, 10))
+		ret = m_sock.Connect(targetIP, g_ConfigInfo.nPort, 10);
+
+		if (!ret )
 		{
 			errorLog(_T("connect [%u] failed"), targetIP);
 			break;
 		}
 
 		int timeout = 20000; 
-		setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,(char*)&timeout,sizeof(timeout));
-		setsockopt(sock,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(timeout));
+		setsockopt(m_sock,SOL_SOCKET,SO_SNDTIMEO,(char*)&timeout,sizeof(timeout));
+		setsockopt(m_sock,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(timeout));
 
 		if (m_isSecure)
 		{
@@ -140,13 +132,10 @@ BOOL TcpComm::Connect( ULONG targetIP, MySocket& sock )
 
 	} while (FALSE);
 
-	if ( !ret )
-		sock.Close();
-
 	return ret;
 }
 
-BOOL TcpComm::Send( MySocket& sock, ULONG targetIP, const LPBYTE pData, DWORD dwSize )
+BOOL TcpComm::Send( ULONG targetIP, const LPBYTE pData, DWORD dwSize )
 {
 	IN_ADDR addr;
 	addr.S_un.S_addr = targetIP;
@@ -158,20 +147,11 @@ BOOL TcpComm::Send( MySocket& sock, ULONG targetIP, const LPBYTE pData, DWORD dw
 
 	BOOL bSentOK = FALSE;
 
-	bSentOK = sock.SendAll((LPBYTE)sendByteBuffer, sendByteBuffer.Size());
-	if (!bSentOK)
-	{
-		sock.Close();
+	if( !m_isConnected)
+		m_isConnected = Connect(targetIP);
+	
+	if (m_isConnected)
+		m_isConnected = m_sock.SendAll((LPBYTE)sendByteBuffer, sendByteBuffer.Size());
 
-		if ( Connect(targetIP, sock))
-		{
-			bSentOK = sock.SendAll((LPBYTE)sendByteBuffer, sendByteBuffer.Size());
-		}
-		else
-		{
-			debugLog(_T("connect %x %s failed"), targetIP, a2t(inet_ntoa(addr)));
-		}
-	}
-
-	return bSentOK;
+	return m_isConnected;
 }

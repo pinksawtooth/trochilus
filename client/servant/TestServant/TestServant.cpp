@@ -98,7 +98,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	LPTSTR para[] = {_T("servant")};
-	fnServiceMain(TRUE);	
+	fnServiceMain(FALSE);	
 
 	while(TRUE) Sleep(500);
 

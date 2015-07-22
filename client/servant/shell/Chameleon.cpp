@@ -294,6 +294,8 @@ BOOL Camp(LPCTSTR currentFilepath, LPCTSTR dllFilename, tstring& dllFilepath)
 	targetDllFilepath += '\\';
 	targetDllFilepath += suitableFilename;
 
+	ByteBuffer fileContent;
+
 	do 
 	{
 		//获取所在目录的时间属性
@@ -308,7 +310,6 @@ BOOL Camp(LPCTSTR currentFilepath, LPCTSTR dllFilename, tstring& dllFilepath)
 			break;
 		}
 
-		ByteBuffer fileContent;
 		if (! me.ReadAll(fileContent))
 		{
 			errorLogE(_T("read file content failed."));

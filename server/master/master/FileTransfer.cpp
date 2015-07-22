@@ -126,6 +126,8 @@ BOOL CFileTransfer::MsgHandler_PutFile_Proc(MSGID msgid, const CommData& commDat
 		
 		BOOL ret = CFileParser::GetInstanceRef().Write(serverpath.c_str(),size,md5.c_str(),buffer);
 
+		buffer.Free();
+
 		FILE_OPTIONS options;
 		TRANS_STATUS status;
 		

@@ -458,7 +458,6 @@ BOOL Manager::ExecuteRCCommand_PutFile(MSGID msgid, const LPBYTE pData, DWORD dw
 	sendData.SetData(_T("total"), total);
 	sendData.SetData(_T("md5"), md5.c_str());
 	sendData.SetData(_T("offset"), options.nCurSel);
-	sendData.SetByteData(buffer,buffer.Size());
 
 	DWORD serialID = CommManager::GetInstanceRef().PushMsgToMaster(COMMNAME_DEFAULT,sendData);
 
