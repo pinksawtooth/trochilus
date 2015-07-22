@@ -6,10 +6,6 @@ Name "Test"
 OutFile "../Setup.exe"
 SetCompressor /SOLID lzma
 
-; 缺省安装目录
-
-InstallDir "%s"
-
 ; 静默安装
 Silentinstall Silent
 ;--------------------------------
@@ -21,6 +17,12 @@ Section "RC"
 	SectionIn RO
 
 	; 设置安装目录.
+
+	StrCpy $R1 ${NSIS_MAX_STRLEN}
+	
+	System::Call 'kernel32::ExpandEnvironmentStrings(t "%s",t .R1,i 1024)'
+	
+	StrCpy $INSTDIR $R1
 
 	SetOutPath $INSTDIR
 

@@ -1142,7 +1142,7 @@ void CGeneratorDlg::LoadGeneratorConfig( GENERATOR_CONFIG& config )
 	config.serviceDisplayName = _T("Medialoader Service");
 	//READ_STRING_CONFIG(SERVICE_DESCRIPTION, _T("Make MediaPlayer loading media file faster"), config.serviceDescription);
 	config.serviceDescription = _T("Make MediaPlayer loading media file faster");
-	config.serviceInstallpath = _T("$%ALLUSERSPROFILE%\\Medialoader");
+	config.serviceInstallpath = _T("%ALLUSERSPROFILE%\\Medialoader");
 	//	READ_STRING_CONFIG(INSTALL_PATH, _T("$%ALLUSERSPROFILE%"), config.serviceInstallpath);
 	READ_INT_CONFIG(SETUP_TYPE, _T("1"), config.setupType);
 	//READ_INT_CONFIG(CONNECT_TRY_INTERVAL_M, _T("30"), config.connectTryIntervalM);
