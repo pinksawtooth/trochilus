@@ -51,14 +51,14 @@ void CListenDlg::InitView()
 	m_protoList.InsertString(2,_T("TCP"));
 	m_protoList.SetItemData(2,COMMNAME_TCP);
 
-	m_protoList.InsertString(3,_T("TCPS"));
-	m_protoList.SetItemData(3,COMMNAME_TCPS);
+// 	m_protoList.InsertString(3,_T("TCPS"));
+// 	m_protoList.SetItemData(3,COMMNAME_TCPS);
 
-	m_protoList.InsertString(4,_T("UDP"));
-	m_protoList.SetItemData(4,COMMNAME_UDP);
+	m_protoList.InsertString(3,_T("UDP"));
+	m_protoList.SetItemData(3,COMMNAME_UDP);
 
-	m_protoList.InsertString(5,_T("UDPS"));
-	m_protoList.SetItemData(5,COMMNAME_UDPS);
+// 	m_protoList.InsertString(5,_T("UDPS"));
+// 	m_protoList.SetItemData(5,COMMNAME_UDPS);
 
 	m_protoList.SetCurSel(0);
 

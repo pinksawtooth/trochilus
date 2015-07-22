@@ -21,10 +21,30 @@ UdpComm::UdpComm(BOOL isSecure):m_isConnected(FALSE),
 	m_vsocket     =	(_vtcp_socket)		m_vtcp.MemGetProcAddress("vtcp_socket");
 	m_vconnect    =	(_vtcp_connect)		m_vtcp.MemGetProcAddress("vtcp_connect");
 	m_vstartup    =	(_vtcp_startup)		m_vtcp.MemGetProcAddress("vtcp_startup");
+	m_lasterr	  = (_vtcp_lasterr)		m_vtcp.MemGetProcAddress("vtcp_geterror");
 	m_vclose      =	(_vtcp_close)		m_vtcp.MemGetProcAddress("vtcp_close");
 	m_vsetsockopt = (_vtcp_setsockopt)	m_vtcp.MemGetProcAddress("vtcp_setsockopt");
+	m_vsocketshare = (_vtcp_socketshare)m_vtcp.MemGetProcAddress("vtcp_socketshare");
+	m_vlisten =  (_vtcp_listen)m_vtcp.MemGetProcAddress("vtcp_listen");
+	m_vbind =  (_vtcp_bind)m_vtcp.MemGetProcAddress("vtcp_bind");
 
 	m_vstartup();
+
+	SOCKADDR_IN hints;
+
+	memset(&hints, 0, sizeof(SOCKADDR_IN));
+	hints.sin_family = AF_INET;
+	hints.sin_port = htons(61224);
+
+	m_psock = m_vsocket(AF_INET,SOCK_DGRAM,0);
+
+	m_vbind(m_psock,(sockaddr*)&hints,sizeof(hints));
+
+	m_vlisten(m_psock,1);
+
+	m_sock = m_vsocketshare(m_psock);
+
+	int err = m_lasterr();
 
 	if (isSecure)
 	{
@@ -161,19 +181,16 @@ BOOL UdpComm::Connect( ULONG targetIP,int port )
 	hints.sin_addr.s_addr = targetIP;
 	hints.sin_port = htons(port);
 
-	if (m_sock != VTCP_INVALID_SOCKET)
-	{
-		m_vclose(m_sock);
-		m_sock = VTCP_INVALID_SOCKET;
-	}
-
-	m_sock = m_vsocket(AF_INET,SOCK_DGRAM,0);
-
 	if (VTCP_ERROR == m_vconnect(m_sock,(sockaddr*)&hints,sizeof(hints)))
 	{
+		if ( m_lasterr() == 3 )
+		{
+			m_vclose(m_sock);
+			m_sock = m_vsocketshare(m_psock);
+		}
+		
 		return FALSE;
 	}
-	
 	int timeout = 20000;
 	m_vsetsockopt(m_sock,SOL_SOCKET,VTCP_SO_RECV_TIMEO,(char*)&timeout,sizeof(int));
 	m_vsetsockopt(m_sock,SOL_SOCKET,VTCP_SO_SEND_TIMEO,(char*)&timeout,sizeof(int));

@@ -27,9 +27,9 @@ BOOL CommManager::Init()
 	m_commList[COMMNAME_HTTP] = new HttpComm;
 	m_commList[COMMNAME_HTTPS] = new HttpComm(TRUE);
 	m_commList[COMMNAME_TCP] = new TcpComm;
-	m_commList[COMMNAME_TCPS] = new TcpComm(TRUE);
+//	m_commList[COMMNAME_TCPS] = new TcpComm(TRUE);
 	m_commList[COMMNAME_UDP] = new UdpComm;
-	m_commList[COMMNAME_UDPS] = new UdpComm(TRUE);
+//	m_commList[COMMNAME_UDPS] = new UdpComm(TRUE);
 
 	m_hExitEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 	if (! m_hExitEvent.IsValid())
