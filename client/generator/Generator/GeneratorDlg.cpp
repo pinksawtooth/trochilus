@@ -114,9 +114,9 @@ BEGIN_MESSAGE_MAP(CGeneratorDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON_BINGO, &CGeneratorDlg::OnBnClickedButtonBingo)
 	ON_BN_CLICKED(IDC_BUTTON_CLOSE, &CGeneratorDlg::OnBnClickedButtonClose)
-	ON_BN_CLICKED(IDC_RADIO_PASSUAC, &CGeneratorDlg::OnBnClickedRadioPassuac)
-	ON_BN_CLICKED(IDC_RADIO_SETUP, &CGeneratorDlg::OnBnClickedRadioSetup)
-	ON_BN_CLICKED(IDC_RADIO_HIJACK, &CGeneratorDlg::OnBnClickedRadioHijack)
+// 	ON_BN_CLICKED(IDC_RADIO_PASSUAC, &CGeneratorDlg::OnBnClickedRadioPassuac)
+// 	ON_BN_CLICKED(IDC_RADIO_SETUP, &CGeneratorDlg::OnBnClickedRadioSetup)
+// 	ON_BN_CLICKED(IDC_RADIO_HIJACK, &CGeneratorDlg::OnBnClickedRadioHijack)
 	ON_CBN_SELCHANGE(IDC_COMBO_SETUP_TYPE, &CGeneratorDlg::OnCbnSelchangeComboSetupType)
 	ON_CBN_SELENDOK(IDC_COMBO_COMM, &CGeneratorDlg::OnCbnSelendokComboComm)
 END_MESSAGE_MAP()
@@ -136,12 +136,12 @@ void CGeneratorDlg::InitDlgEdit()
 	SetDlgItemInt(IDC_EDIT_PORT, config.port);
 //	SetDlgItemInt(IDC_EDIT_DNSPORT, 53);
 
-	if (config.packetType == PACKET_TYPE_PASSUAC)
-	{
-		GetDlgItem(IDC_EDIT_INSTALLPATH)->EnableWindow(FALSE);
-		config.setupType = SETUP_TYPE_CHAMELEON;
-		m_SetupType.EnableWindow(FALSE);
-	}
+// 	if (config.packetType == PACKET_TYPE_PASSUAC)
+// 	{
+// 		GetDlgItem(IDC_EDIT_INSTALLPATH)->EnableWindow(FALSE);
+// 		config.setupType = SETUP_TYPE_CHAMELEON;
+// 		m_SetupType.EnableWindow(FALSE);
+// 	}
 
 //	m_DefaultComm.AddString(_T("自动检测"));;
 
@@ -175,24 +175,24 @@ void CGeneratorDlg::InitDlgEdit()
 
 	config.packetType = PACKET_TYPE_SETUP;
 
-	if (config.packetType == PACKET_TYPE_SETUP)
-	{
-		((CButton*)GetDlgItem(IDC_RADIO_SETUP))->SetCheck(TRUE);
-		((CButton*)GetDlgItem(IDC_RADIO_PASSUAC))->SetCheck(FALSE);
-		((CButton*)GetDlgItem(IDC_RADIO_HIJACK))->SetCheck(FALSE);
-	}
-	else if (config.packetType == PACKET_TYPE_PASSUAC)
-	{
-		((CButton*)GetDlgItem(IDC_RADIO_SETUP))->SetCheck(FALSE);
-		((CButton*)GetDlgItem(IDC_RADIO_HIJACK))->SetCheck(FALSE);
-		((CButton*)GetDlgItem(IDC_RADIO_PASSUAC))->SetCheck(TRUE);
-	}
-	else if (config.packetType == PACKET_TYPE_HIJACK)
-	{
-		((CButton*)GetDlgItem(IDC_RADIO_HIJACK))->SetCheck(TRUE);
-		((CButton*)GetDlgItem(IDC_RADIO_SETUP))->SetCheck(FALSE);
-		((CButton*)GetDlgItem(IDC_RADIO_PASSUAC))->SetCheck(FALSE);
-	}
+// 	if (config.packetType == PACKET_TYPE_SETUP)
+// 	{
+// 		((CButton*)GetDlgItem(IDC_RADIO_SETUP))->SetCheck(TRUE);
+// 		((CButton*)GetDlgItem(IDC_RADIO_PASSUAC))->SetCheck(FALSE);
+// 		((CButton*)GetDlgItem(IDC_RADIO_HIJACK))->SetCheck(FALSE);
+// 	}
+// 	else if (config.packetType == PACKET_TYPE_PASSUAC)
+// 	{
+// 		((CButton*)GetDlgItem(IDC_RADIO_SETUP))->SetCheck(FALSE);
+// 		((CButton*)GetDlgItem(IDC_RADIO_HIJACK))->SetCheck(FALSE);
+// 		((CButton*)GetDlgItem(IDC_RADIO_PASSUAC))->SetCheck(TRUE);
+// 	}
+// 	else if (config.packetType == PACKET_TYPE_HIJACK)
+// 	{
+// 		((CButton*)GetDlgItem(IDC_RADIO_HIJACK))->SetCheck(TRUE);
+// 		((CButton*)GetDlgItem(IDC_RADIO_SETUP))->SetCheck(FALSE);
+// 		((CButton*)GetDlgItem(IDC_RADIO_PASSUAC))->SetCheck(FALSE);
+// 	}
 	
 
 	//目前尚未开放的配置
@@ -986,42 +986,49 @@ void CGeneratorDlg::OnBnClickedButtonBingo()
 	Config_Info.nPort = GetDlgItemInt(IDC_EDIT_PORT);
 	generateConfig.port = GetDlgItemInt(IDC_EDIT_PORT);
 
-	BOOL bCarrier = ((CButton*)GetDlgItem(IDC_RADIO_CARRIER))->GetCheck();
-	BOOL bSetup = ((CButton*)GetDlgItem(IDC_RADIO_SETUP))->GetCheck();
-	BOOL bPassUAC = ((CButton*)GetDlgItem(IDC_RADIO_PASSUAC))->GetCheck();
-	BOOL bHijack = ((CButton*)GetDlgItem(IDC_RADIO_HIJACK))->GetCheck();
-	if (bSetup) generateConfig.packetType = PACKET_TYPE_SETUP;
-	else if (bPassUAC) generateConfig.packetType = PACKET_TYPE_PASSUAC;
-	else if (bHijack) generateConfig.packetType = PACKET_TYPE_HIJACK;
+// 	BOOL bCarrier = ((CButton*)GetDlgItem(IDC_RADIO_CARRIER))->GetCheck();
+// 	BOOL bSetup = ((CButton*)GetDlgItem(IDC_RADIO_SETUP))->GetCheck();
+// 	BOOL bPassUAC = ((CButton*)GetDlgItem(IDC_RADIO_PASSUAC))->GetCheck();
+// 	BOOL bHijack = ((CButton*)GetDlgItem(IDC_RADIO_HIJACK))->GetCheck();
+	generateConfig.packetType = PACKET_TYPE_SETUP;
+// 	if (bPassUAC) generateConfig.packetType = PACKET_TYPE_PASSUAC;
+// 	if (bHijack) generateConfig.packetType = PACKET_TYPE_HIJACK;
 
 	Config_Info.nFlag = CONNECT_FLAG;
 	Service_Info.nFlag = SERVICE_FLAG;
 
 	CString strError;
-	if (bCarrier && WriteCarrier(Config_Info,Service_Info,strError))
+// 	if (bCarrier && WriteCarrier(Config_Info,Service_Info,strError))
+// 	{
+// 		MessageBox(_T("Carrier生成成功！"));
+// 	}
+// 	else if (bSetup && WriteSetup(Config_Info,Service_Info,strError))
+// 	{
+// 		MessageBox(_T("Setup生成成功！"));
+// // 		CString exploreParameter;
+// // 		exploreParameter.Format(_T("/e,/select,\"%ssetup.exe\""), GetModFilePath(NULL));
+// // 		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
+// 	}
+// 	else if (bPassUAC && WriteBypassUAC(Config_Info,Service_Info,strError))
+// 	{
+// 		MessageBox(L"BypassUAC生成成功！");
+// // 		CString exploreParameter;
+// // 		exploreParameter.Format(_T("/e,/select,\"%ssetup.exe\""), GetModFilePath(NULL));
+// // 		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
+// 	}
+// 	else if(bHijack && WriteHijack(Config_Info,Service_Info,strError))
+// 	{
+// 		MessageBox(_T("Hijack生成成功！"));
+// // 		CString exploreParameter;
+// // 		exploreParameter.Format(_T("/e,/select,\"%shijack\\RsTray.exe\""), GetModFilePath(NULL));
+// // 		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
+// 	}
+	if ( WriteSetup(Config_Info,Service_Info,strError))
 	{
-		MessageBox(_T("Carrier生成成功！"));
-	}
-	else if (bSetup && WriteSetup(Config_Info,Service_Info,strError))
-	{
-		MessageBox(_T("Setup生成成功！"));
-// 		CString exploreParameter;
-// 		exploreParameter.Format(_T("/e,/select,\"%ssetup.exe\""), GetModFilePath(NULL));
-// 		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
-	}
-	else if (bPassUAC && WriteBypassUAC(Config_Info,Service_Info,strError))
-	{
-		MessageBox(L"BypassUAC生成成功！");
-// 		CString exploreParameter;
-// 		exploreParameter.Format(_T("/e,/select,\"%ssetup.exe\""), GetModFilePath(NULL));
-// 		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
-	}
-	else if(bHijack && WriteHijack(Config_Info,Service_Info,strError))
-	{
-		MessageBox(_T("Hijack生成成功！"));
-// 		CString exploreParameter;
-// 		exploreParameter.Format(_T("/e,/select,\"%shijack\\RsTray.exe\""), GetModFilePath(NULL));
-// 		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
+			MessageBox(_T("Setup生成成功！"));
+			// 		CString exploreParameter;
+			// 		exploreParameter.Format(_T("/e,/select,\"%ssetup.exe\""), GetModFilePath(NULL));
+			// 		::ShellExecute(NULL, _T("open"), _T("explorer.exe"), exploreParameter, NULL, SW_SHOW);
 	}
 	else 
 	{

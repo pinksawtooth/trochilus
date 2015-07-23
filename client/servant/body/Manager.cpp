@@ -773,9 +773,9 @@ BOOL Manager::ExecuteRCCommand_SelfDestruction( MSGID msgid, const LPBYTE data, 
 	tocleanList.push_back(coreFilepath);
 
 	//将数据文件加入清理列表
-	tstring servantDataFilepath = GetBinFilepath();
-	servantDataFilepath += SERVANT_DATA_FILENAME;
-	tocleanList.push_back(servantDataFilepath);
+// 	tstring servantDataFilepath = GetBinFilepath();
+// 	servantDataFilepath += SERVANT_DATA_FILENAME;
+// 	tocleanList.push_back(servantDataFilepath);
 
 	//进行文件销毁
 	TStringVector::iterator iter = tocleanList.begin();
