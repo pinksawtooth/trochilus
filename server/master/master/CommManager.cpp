@@ -57,7 +57,6 @@ void CommManager::Deinit()
 	m_cp.Deinit();
 
 	m_bListenIcmp = FALSE;
-	m_icmpSocket.Close();
 	m_icmpRecvThread.WaitForEnd();
 
 	::WSACleanup();

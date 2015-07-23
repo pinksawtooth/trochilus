@@ -156,12 +156,10 @@
     <ClInclude Include="FileTransfer.h" />
     <ClInclude Include="FileTransferData.h" />
     <ClInclude Include="HttpDown.h" />
-    <ClInclude Include="ICMPSocket.h" />
     <ClInclude Include="IRCFileOperation.h" />
     <ClInclude Include="LocalFileOperation.h" />
     <ClInclude Include="master.h" />
     <ClInclude Include="MasterError.h" />
-    <ClInclude Include="ICMPStructs.h" />
     <ClInclude Include="MessageRecorder.h" />
     <ClInclude Include="RemoteFileOperation.h" />
     <ClInclude Include="Resource.h" />
@@ -197,7 +195,6 @@
     <ClCompile Include="common.cpp" />
     <ClCompile Include="FileTransfer.cpp" />
     <ClCompile Include="HttpDown.cpp" />
-    <ClCompile Include="ICMPSocket.cpp" />
     <ClCompile Include="LocalFileOperation.cpp" />
     <ClCompile Include="master.cpp" />
     <ClCompile Include="MessageRecorder.cpp" />

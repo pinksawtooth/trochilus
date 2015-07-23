@@ -1,7 +1,6 @@
 #pragma once
 #include <list>
 #include <map>
-#include "ICMPSocket.h"
 #include "CutupProtocol.h"
 #include "CommCallback.h"
 #include "CommData.h"
@@ -95,8 +94,6 @@ private:
 	static BOOL UdpMsgHandler(LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender);
 
 private:
-	ICMPSocket	m_icmpSocket;
-
 	CutupProtocol	m_cp;
 
 	CriticalSection	m_mapSection;

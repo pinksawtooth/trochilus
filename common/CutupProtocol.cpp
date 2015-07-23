@@ -2,8 +2,6 @@
 #include "time.h"
 #include <atlenc.h>
 #include "CutupProtocol.h"
-#include <Nb30.h>
-#pragma comment(lib,"netapi32.lib") 
 
 struct CPGUID CutupProtocol::m_slocalGuid = {0};
 
@@ -29,7 +27,7 @@ BOOL CutupProtocol::Init()
 	{
 		return FALSE;
 	}
-		
+
 	return TRUE;
 }
 
@@ -46,53 +44,23 @@ void CutupProtocol::SetLocalGuid( const CPGUID& guid )
 
 BOOL CutupProtocol::CreateCPGuid( CPGUID& cpguid )
 {
-	memset(&cpguid,0,sizeof(cpguid));
-
-	// 重置网卡，以便我们可以查询
-	NCB Ncb;
-	memset(&Ncb, 0, sizeof(Ncb));
-	Ncb.ncb_command = NCBRESET;
-	Ncb.ncb_lana_num = 0;
-
-	if (Netbios(&Ncb) != NRC_GOODRET) 
-		return false;
-
-	// 准备取得接口卡的状态块
-
-	memset(&Ncb,0,sizeof(Ncb));
-	Ncb.ncb_command = NCBASTAT;
-	Ncb.ncb_lana_num = 0;
-	strcpy((char *) Ncb.ncb_callname, "*");
-
-	struct ASTAT
+	BOOL bRet = FALSE;
+	GUID guid;
+	CoInitialize(NULL);
 	{
-
-		ADAPTER_STATUS adapt;
-		NAME_BUFFER NameBuff[30];
-
-	} Adapter;
-
-	memset(&Adapter,0,sizeof(Adapter));
-	Ncb.ncb_buffer = (unsigned char *)&Adapter;
-	Ncb.ncb_length = sizeof(Adapter);
-
-
-
-	// 取得网卡的信息，并且如果网卡正常工作的话，返回标准的冒号分隔格式。
-
-	if (Netbios(&Ncb) == 0)
-	{
-
-		cpguid.data4[0] = int (Adapter.adapt.adapter_address[0]),
-		cpguid.data4[1] = int (Adapter.adapt.adapter_address[1]);
-		cpguid.data4[2] = int (Adapter.adapt.adapter_address[2]);
-		cpguid.data4[3] = int (Adapter.adapt.adapter_address[3]);
-		cpguid.data4[4] = int (Adapter.adapt.adapter_address[4]);
-		cpguid.data4[5] = int (Adapter.adapt.adapter_address[5]);
-		return true;
+		if (S_OK == ::CoCreateGuid(&guid))
+		{
+			bRet = TRUE;
+		}
 	}
-	else
-		return false;
+	CoUninitialize();
+
+	if (bRet)
+	{
+		cpguid = guid;
+	}
+
+	return bRet;
 }
 
 void CutupProtocol::CPGuid2Str( const CPGUID& cpguid, tstring& str )
@@ -192,7 +160,7 @@ BOOL CutupProtocol::GetMessageToSendById( const CPGUID& to, DWORD dwMaxSize, Byt
 				}
 			}
 		}
-		
+
 		//如果有符合条件待发送的消息
 		if (NULL != pMsg)
 		{
@@ -230,7 +198,7 @@ BOOL CutupProtocol::GetMessageToSend( DWORD dwMaxSize, ByteBuffer& byteData, CPG
 				}
 			}
 		}
-		
+
 		//如果有符合条件待发送的消息
 		if (NULL != pMsg)
 		{
@@ -342,7 +310,7 @@ BOOL CutupProtocol::RecvMsg( ByteBuffer& data, CPGUID& from )
 		}
 	}
 	m_recvQueueSection.Leave();
-	
+
 	return bGetOne;
 }
 
@@ -392,7 +360,7 @@ BOOL CutupProtocol::AddRecvPacket( const LPBYTE pData, DWORD dwSize, COMM_NAME f
 	PCP_PACKET pPacket = (PCP_PACKET) pData;
 	//if (pPacket->header.size == 0 && pPacket->header.index == 0) return TRUE;
 	DWORD dwPacketSize = PACKET_SIZE(pPacket);
-	
+
 	if (dwPacketSize != dwSize) 
 	{
 		errorLog(_T("invalid packetsize %u %u"), dwPacketSize, dwSize);
@@ -475,7 +443,7 @@ void CutupProtocol::MergePackets( const PacketList& packetList, ByteBuffer& byte
 	{
 		dwDataSize += (*iter)->header.size;
 	}
-	
+
 	byteData.Alloc(dwDataSize);
 	LPBYTE pData = byteData;
 
@@ -507,7 +475,7 @@ void CutupProtocol::AddCmdPacket( const CPGUID& to, COMM_NAME commName, CPSERIAL
 	}
 	msg.finishTime = 0;
 	msg.bAllSent = FALSE;
-	
+
 	m_sendQueueSection.Enter();
 	{
 		if (bFront) m_sendQueue.push_front(msg);
@@ -648,7 +616,7 @@ BOOL CutupProtocol::ResendMsg( const CPGUID& to, CPSERIAL serial, DWORD dwExpect
 
 					bSuccess = TRUE;
 				}
-								
+
 				break;
 			}
 		}

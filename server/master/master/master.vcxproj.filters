@@ -120,12 +120,6 @@
     <ClInclude Include="common.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="ICMPStructs.h">
-      <Filter>comm</Filter>
-    </ClInclude>
-    <ClInclude Include="ICMPSocket.h">
-      <Filter>comm</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\base\include\file\MyFile.h">
       <Filter>include\file</Filter>
     </ClInclude>
@@ -328,9 +322,6 @@
     </ClCompile>
     <ClCompile Include="common.cpp">
       <Filter>common</Filter>
-    </ClCompile>
-    <ClCompile Include="ICMPSocket.cpp">
-      <Filter>comm</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\base\include\file\MyFile.cpp">
       <Filter>include\file</Filter>

