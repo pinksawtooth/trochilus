@@ -48,6 +48,8 @@ void CFilePanelDlg::InitTab()
 	CLIENT_INFO info;
 	GetClientInfo(m_clientid,&info);
 
+	m_FileMgr.m_panel = this;
+
 	m_FileMgr.Create(IDD_DIALOG_FILE,&m_TabCtrl);
 	m_FileMgr.MoveWindow(&rs);
 

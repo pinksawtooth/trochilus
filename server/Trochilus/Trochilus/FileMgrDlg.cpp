@@ -3,11 +3,12 @@
 
 #include "stdafx.h"
 #include "Trochilus.h"
-#include "FileMgrDlg.h"
 #include "IconLoader.h"
 #include "afxdialogex.h"
 #include "DownDlg.h"
 #include "json/json.h"
+#include "FileMgrDlg.h"
+#include "FilePanelDlg.h"
 
 
 // CFileMgrDlg ¶Ô»°¿ò
@@ -408,6 +409,10 @@ void CFileMgrDlg::OnBnClickedButtonUpload()
 	strLocal += filename;
 
 	PutFileToClient(m_clientid,strLocal,strRemote);
+
+	((CFilePanelDlg*)m_panel)->m_TabCtrl.SetCurSel(1);
+	((CFilePanelDlg*)m_panel)->m_FileMgr.ShowWindow(FALSE);
+	((CFilePanelDlg*)m_panel)->m_TransInfo.ShowWindow(TRUE);
 }
 
 
@@ -447,8 +452,12 @@ void CFileMgrDlg::OnBnClickedButtonDown()
 
 	strRemote += filename;
 	strLocal += filename;
-	
+
 	GetFileToServer(m_clientid,strRemote,strLocal);
+
+	((CFilePanelDlg*)m_panel)->m_TabCtrl.SetCurSel(1);
+	((CFilePanelDlg*)m_panel)->m_FileMgr.ShowWindow(FALSE);
+	((CFilePanelDlg*)m_panel)->m_TransInfo.ShowWindow(TRUE);
 }
 
 
@@ -473,6 +482,11 @@ void CFileMgrDlg::OnBnClickedButtonRun()
 	strRemote += filename;
 
 	RunRemoteFile(m_clientid,strRemote);
+
+	CString notify;
+	notify.Format(_T("Run %s !"),strRemote);
+
+	AfxMessageBox(notify);
 }
 
 
@@ -496,6 +510,11 @@ void CFileMgrDlg::OnBnClickedButtonDelete()
 	strRemote += filename;
 
 	DeleteRemoteFile(m_clientid,strRemote);
+
+	CString notify;
+	notify.Format(_T("Delete %s !"),strRemote);
+
+	AfxMessageBox(notify);
 }
 
 BOOL CFileMgrDlg::IsEquPath( LPCTSTR filename,BOOL isRemote )

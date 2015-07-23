@@ -65,6 +65,8 @@ public:
 	CImageList m_ImageList;
 
 	CResizer m_resizer;
+
+	LPVOID m_panel;
 private:
 	//远程目录列表双击
 	afx_msg void OnNMDblclkListRdic(NMHDR *pNMHDR, LRESULT *pResult);

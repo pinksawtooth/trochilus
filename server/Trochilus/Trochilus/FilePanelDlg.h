@@ -50,6 +50,8 @@ public:
 
 private:
 
+	friend CFileMgrDlg;
+
 	CTabCtrl m_TabCtrl;
 
 	typedef std::map<tstring,tstring> ModuleCallBack;
