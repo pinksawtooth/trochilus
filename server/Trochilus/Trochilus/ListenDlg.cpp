@@ -34,10 +34,10 @@ void CListenDlg::InitView()
 	m_Imagelist.Create(40,40,ILC_COLOR32|ILC_MASK,2,2);
 
 	m_listenList.SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);	
-	m_listenList.InsertColumn(0,_T("Protocol"),LVCFMT_CENTER,130,-1);
-	m_listenList.InsertColumn(1,_T("Port"),LVCFMT_CENTER,120,-1);
-	m_listenList.InsertColumn(2,_T("Status"),LVCFMT_CENTER,115,-1);
-	m_listenList.InsertColumn(3,_T("Error"),LVCFMT_CENTER,200,-1);
+	m_listenList.InsertColumn(0,_T("Protocol"),LVCFMT_CENTER,250,-1);
+	m_listenList.InsertColumn(1,_T("Port"),LVCFMT_CENTER,170,-1);
+// 	m_listenList.InsertColumn(2,_T("Status"),LVCFMT_CENTER,115,-1);
+// 	m_listenList.InsertColumn(3,_T("Error"),LVCFMT_CENTER,200,-1);
 	
 	m_Imagelist.Add(AfxGetApp()->LoadIcon(IDI_ICON_LIS));
 	m_listenList.SetImageList(&m_Imagelist);
@@ -158,8 +158,8 @@ void CListenDlg::OnBnClickedButtonStart()
 	if (serial)
 	{
 		m_listenList.SetItemData(nCount,serial);
-		m_listenList.SetItemText(nCount,2,_T("Running"));
-		m_listenList.SetItemText(nCount,3,_T("None"));
+// 		m_listenList.SetItemText(nCount,2,_T("Running"));
+// 		m_listenList.SetItemText(nCount,3,_T("None"));
 		m_listenList.SetItemColor(serial,RGB(255,0,0));
 	}
 	else
