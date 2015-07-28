@@ -154,6 +154,9 @@ BOOL UdpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 		if (! ReceiveAll(m_sock,(LPBYTE)buffer,recvHead.nSize))
 			break;
 
+		if (recvHead.flag != UDP_FLAG)
+			break;
+
 		//¸´ÖÆÊý¾Ý
 		*pRecvData = Alloc(recvHead.nSize);
 		memcpy(*pRecvData, (LPBYTE)buffer, recvHead.nSize);

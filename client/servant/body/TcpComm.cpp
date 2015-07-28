@@ -48,6 +48,9 @@ BOOL TcpComm::SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendS
 
 		ret = m_sock.ReceiveAll((LPBYTE)&recvHead, sizeof(TCP_HEADER));
 
+		if (recvHead.flag != TCP_FLAG)
+			break;
+
 		if ( !ret )
 			break;
 
