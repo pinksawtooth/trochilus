@@ -1,7 +1,5 @@
 #include "StdAfx.h"
 #include "HostList.h"
-#include "FilePanelDlg.h"
-#include "CmdDlg.h"
 
 CHostList::CHostList(void)
 {
@@ -64,10 +62,21 @@ void CHostList::OnFilemanager()
 	CLIENT_INFO* info;
 	info = (CLIENT_INFO*)GetItemData(index);
 
-	CFilePanelDlg *dlg = new CFilePanelDlg;
-	dlg->SetClientID(info->clientid);
+	CFilePanelDlg *dlg = NULL;
 
-	dlg->Create(IDD_DIALOG_PANEL);
+	if (m_FuncMap[info->clientid].panel == NULL)
+	{
+		dlg = new CFilePanelDlg();
+		dlg->SetClientID(info->clientid);
+		dlg->Create(IDD_DIALOG_PANEL);
+
+		m_FuncMap[info->clientid].panel = dlg;
+	}
+	else
+	{
+		dlg = m_FuncMap[info->clientid].panel;
+	}
+	
 	dlg->ShowWindow(TRUE);
 }
 
@@ -83,10 +92,21 @@ void CHostList::OnCommander()
 	CLIENT_INFO* info;
 	info = (CLIENT_INFO*)GetItemData(index);
 
-	CCmdDlg* dlg = new CCmdDlg;
-	dlg->InitModule(info->clientid);
+	CCmdDlg *dlg = NULL;
 
-	dlg->Create(IDD_DIALOG_CMD);
+	if (m_FuncMap[info->clientid].cmd == NULL)
+	{
+		dlg = new CCmdDlg();
+		dlg->InitModule(info->clientid);
+		dlg->Create(IDD_DIALOG_CMD);
+
+		m_FuncMap[info->clientid].cmd = dlg;
+	}
+	else
+	{
+		dlg = m_FuncMap[info->clientid].cmd;
+	}
+
 	dlg->ShowWindow(TRUE);
 }
 
@@ -244,6 +264,17 @@ BOOL CHostList::AddClientInfo( CLIENT_INFO* pInfo )
 		m_GroupsMap.insert(MAKE_PAIR(GroupMap,pInfo->groups,list));
 	}
 
+	if (m_FuncMap.find(pInfo->clientid) == m_FuncMap.end())
+	{
+		FUNC_ITEM item;
+
+		item.panel = new CFilePanelDlg();
+		item.cmd = new CCmdDlg();
+
+		memset(&item,0,sizeof(FUNC_ITEM));
+
+		m_FuncMap[pInfo->clientid] = item;
+	}
 
 	return nIndex;
 }

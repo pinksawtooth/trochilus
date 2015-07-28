@@ -141,9 +141,9 @@ void CCmdDlg::OnBnClickedButtonClose()
 
 void CCmdDlg::OnClose()
 {
-	__super::OnClose();
-
-	CloseShell((LPCWSTR)m_clientid.GetBuffer());	
+//	__super::OnClose();
+	this->ShowWindow(FALSE);
+//	CloseShell((LPCWSTR)m_clientid.GetBuffer());	
 }
 
 HBRUSH CCmdDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)

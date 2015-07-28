@@ -39,6 +39,8 @@
 #define TRANSMIT_AS_TABLE_SIZE    0            
 #define WIRE_MARSHAL_TABLE_SIZE   0            
 
+#pragma warning(push)
+
 typedef struct _svcctl_MIDL_TYPE_FORMAT_STRING
     {
     short          Pad;

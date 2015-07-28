@@ -121,7 +121,7 @@ void CFilePanelDlg::OnTcnSelchangeTabPanel(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CFilePanelDlg::OnClose()
 {
-	CDialogEx::OnClose();
+	this->ShowWindow(FALSE);
 }
 void CFilePanelDlg::OnSize(UINT nType, int cx, int cy)
 {

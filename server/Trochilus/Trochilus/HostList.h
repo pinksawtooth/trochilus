@@ -1,7 +1,19 @@
 #pragma once
 #include "ReportCtrl.h"
+#include "FilePanelDlg.h"
+#include "CmdDlg.h"
 
 #include <list>
+#include <map>
+
+typedef struct
+{
+	CFilePanelDlg* panel;
+	CCmdDlg* cmd;
+}FUNC_ITEM,*PFUNC_ITEM;
+
+typedef std::map<CString ,FUNC_ITEM> FuncMap;
+
 class CHostList : public CReportCtrl
 {
 public:
@@ -39,6 +51,8 @@ public:
 	virtual afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	virtual afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	GroupMap m_GroupsMap;
+
+	FuncMap m_FuncMap;
 
 public:
 	afx_msg void OnFilemanager();
