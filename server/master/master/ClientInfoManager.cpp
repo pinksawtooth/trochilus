@@ -262,58 +262,6 @@ void ClientInfoManager::SetCallbacks( FnNotifyProc fnCallback, LPVOID lpParamete
 	m_lpParameter = lpParameter;
 }
 
-BOOL ClientInfoManager::InstallModule( LPCTSTR clientid, LPCTSTR moduleName )
-{
-	tstring modname = moduleName;
-	makeLower(modname);
-	tstring datFilepath;
-	if (! ClientmodManager::GetInstanceRef().GetModuleDatFilepath(modname.c_str(), datFilepath))
-	{
-		errorLog(_T("no such clientmodule [%s]"), moduleName);
-		return FALSE;
-	}
-
-	CommData sendData;
-	sendData.SetMsgID(MSGID_INSTALL_MODULE);
-	sendData.SetData(_T("modname"), moduleName);
-
-	if (! ReadDataFile(datFilepath.c_str(), sendData))
-	{
-		errorLog(_T("read datafile failed[%s]"), datFilepath.c_str());
-		return FALSE;
-	}
-
-	MSGSERIALID requestInstallModMsgID = CommManager::GetInstanceRef().AddToSendMessage(clientid, sendData, TRUE);
-	if (INVALID_MSGSERIALID == requestInstallModMsgID)
-	{
-		errorLog(_T("send msg to install mod[%s] in [%s] failed"), moduleName, clientid);
-		return FALSE;
-	}
-
-	BOOL bPushOK = FALSE;
-	m_infoMapSection.Enter();
-	{
-		ClientBaseInfoMap::iterator iter = m_clientBaseInfoMap.find(clientid);
-		if (iter != m_clientBaseInfoMap.end())
-		{
-			iter->second.installModMsgIDMap[moduleName] = requestInstallModMsgID;
-			bPushOK = TRUE;
-		}
-	}
-	m_infoMapSection.Leave();
-
-	if (bPushOK)
-	{
-		infoLog(_T("send install msg OK. install mod[%s] to [%s]"), moduleName, clientid);
-	}
-	else
-	{
-		errorLog(_T("send install msg OK.id=%I64u. but no info for client[%s]"), requestInstallModMsgID, clientid);
-	}
-
-	return TRUE;
-}
-
 void ClientInfoManager::TransferInfo( LPCTSTR clientid, const CLIENT_BASE_INFO* pBaseInfo, CLIENT_INFO& info ) const
 {
 	ZeroMemory(&info, sizeof(CLIENT_INFO));

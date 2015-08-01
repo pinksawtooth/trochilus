@@ -38,13 +38,15 @@ BOOL CommManager::Init()
 		return FALSE;
 	}
 	m_dwMsgIntervalMS = 500;
-
-	if (! m_cp.Init())
+	
+	if (! Manager::GetInstanceRef().Init())
 	{
-		errorLog(_T("init cp failed"));
+		errorLog(_T("init servant manager failed"));
 		return FALSE;
 	}
-	
+
+	m_clientid = Manager::GetInstanceRef().GetClientID();
+
 	return TRUE;
 }
 
@@ -63,8 +65,6 @@ void CommManager::Deinit()
 			m_commList[i] = NULL;
 		}
 	}
-
-	m_cp.Deinit();
 }
 
 BOOL CommManager::Send( COMM_NAME commName, ULONG targetIP, const LPBYTE pData, DWORD dwSize )
@@ -124,52 +124,27 @@ DWORD WINAPI CommManager::CmdExcutor( LPVOID lpParameter )
 
 	return 0;
 }
-BOOL CommManager::ModifyPacketStatus(CPSERIAL serial,CPGUID& guid,BOOL status)
+
+BOOL CommManager::PushMsgToMaster( COMM_NAME commName, CommData& data )
 {
-	return m_cp.ModifyPacketStatus(guid,serial,status);
-}
-BOOL CommManager::PushMsgToMaster( COMM_NAME commName, const CommData& data, CPSERIAL* pCPSerial /*= NULL*/ )
-{
+	BOOL ret = FALSE;
+
 	if (NULL == m_commList[commName]) return FALSE;
 
 	//将消息序列化为byteData
 	ByteBuffer byteData;
+
+	data.SetClientID(m_clientid.c_str());
+
 	data.Serialize(byteData);
 
-	//获取该通信方式的包最大数据长度
-	DWORD dwMaxDataSizePerPacket = m_commList[commName]->GetMaxDataSizePerPacket();
+	m_cspd.Enter();
 
-	debugLog(_T("put message [%I64u][%I64u]"), data.GetMsgID(), data.GetSerialID());
-		
-	CPGUID serverGuid = {0};
-	
-	BOOL ret = m_cp.PutMessage(serverGuid, byteData, byteData.Size(), commName, dwMaxDataSizePerPacket, pCPSerial, data.GetMsgID());
+	m_pd.push_back(byteData);
 
-	if (! ret)
-		errorLog(_T("put msg to cp failed"));
+	m_cspd.Leave();
 
 	return ret;
-}
-
-void CommManager::CleanMsgByMSGID(MSGID msgid)
-{
-	m_cp.CleanMessageByFlag(msgid);
-}
-
-void CommManager::SendCommTestMessages( )
-{
-	for (int commname = COMMNAME_DEFAULT + 1; commname < COMMNAME_MAX; commname++)
-	{
-		if (NULL == m_commList[commname]) continue;
-
-		IComm* pComm = m_commList[commname];
-		if (! pComm->CanRecv()) continue;
-
-		CommData commData;
-		commData.SetMsgID(MSGID_AVAILABLE_COMM);
-		commData.SetData(_T("commname"), commname);
-		PushMsgToMaster((COMM_NAME)commname, commData);
-	}
 }
 
 BOOL CommManager::IsCommAvailable( COMM_NAME commName ) const
@@ -272,6 +247,35 @@ void CommManager::SetConfig( DWORD testIntervalMS, DWORD dwMaxNoDataTimeMS )
 {
 }
 
+void CommManager::CreateEmptyPacket(ByteBuffer& buffer)
+{
+	CommData data;
+	data.SetClientID(m_clientid.c_str());
+	data.SetMsgID(MSGID_AVAILABLE_COMM);
+
+	data.Serialize(buffer);
+}
+
+BOOL CommManager::GetMessageToSend( COMM_NAME& name,ByteBuffer& buffer )
+{
+	BOOL ret = FALSE;
+
+	name = COMMNAME_DEFAULT;
+
+	m_cspd.Enter();
+
+	if ( m_pd.size() != 0 )
+	{
+		buffer = m_pd.front();
+		m_pd.pop_front();
+		ret = TRUE;
+	}
+
+	m_cspd.Leave();
+
+	return ret;
+}
+
 DWORD WINAPI CommManager::MessageSender( LPVOID lpParameter )
 {
 	CommManager* pMgr = (CommManager*) lpParameter;
@@ -320,21 +324,25 @@ void CommManager::MessageSenderProc()
 		//从CutupProtocol获取待发送数据
 		ByteBuffer toSendByteData;
 		COMM_NAME commName;
-		CPGUID to = {0};
-		if (! m_cp.GetMessageToSend(0, toSendByteData, &to, &commName))
+
+		if (! GetMessageToSend(  commName ,toSendByteData))
 		{
-			m_cp.CreateEmptyPacket(toSendByteData);
+			CreateEmptyPacket(toSendByteData);
 			commName = COMMNAME_DEFAULT;
 		}
 
-		ULONG targetIP = GetIPByCpguid(to);
-				
-		//发送并接收
-		/*if (! IsCommAvailable(commName)) continue;*/
+		ULONG targetIP = 0;
 
-		BOOL ret = SendAndRecv(commName, targetIP, toSendByteData, toSendByteData.Size(), recvByteData);
+		BOOL ret = FALSE;
 
-		toSendByteData.Free();
+		do 
+		{
+			ret = MySocket::IPOrHostname2IP(a2t(g_ConfigInfo.szAddr),targetIP);
+
+		} while (!ret);
+		
+
+		ret = SendAndRecv(commName, targetIP, toSendByteData, toSendByteData.Size(), recvByteData);
 
 		if (! ret)
 		{
@@ -345,8 +353,6 @@ void CommManager::MessageSenderProc()
 
 			errorLog(_T("sendrecv msg [%d] failed"), commName);
 
-			recvByteData.Free();
-
 			continue;
 		}
 		if (!IsConnected())
@@ -354,35 +360,9 @@ void CommManager::MessageSenderProc()
 			ConnectedNotify();
 		}
 
-		//将收到的消息传递给CutupProtocol
-		if (recvByteData.Size() == 0) continue;
-
-		ret = m_cp.AddRecvPacket(recvByteData, recvByteData.Size(), commName);
-
-		recvByteData.Free();
-
-		if (! ret )
-		{
-			errorLog(_T("recv invalid cp packet"));
-			continue;
-		}
-
-		//判断是否有接收到的消息
-		if (! m_cp.HasReceivedMsg()) continue;
-		CPGUID from;
-		ByteBuffer receivedMessageInByteData;
-
-		if (! m_cp.RecvMsg(receivedMessageInByteData, from)) 
-		{
-			receivedMessageInByteData.Free();
-			errorLog(_T("recv msg from cp failed"));
-			continue;
-		}
 		CommData recvData;
 
-		ret = recvData.Parse(receivedMessageInByteData, receivedMessageInByteData.Size());
-
-		receivedMessageInByteData.Free();
+		ret = recvData.Parse(recvByteData, recvByteData.Size());
 
 		if (!ret  )
 		{
@@ -390,23 +370,22 @@ void CommManager::MessageSenderProc()
 			continue;
 		}
 
-		debugLog(_T("recv msg [%I64u][%I64u]"), recvData.GetMsgID(), recvData.GetSerialID());
-
 		MSGID msgid = recvData.GetMsgID();
 		if (INVALID_MSGID == msgid)
 		{
 			continue;
 		}
 
-		tstring fromClientid;
-		CutupProtocol::CPGuid2Str(from, fromClientid);
-		recvData.SetClientID(fromClientid.c_str());
+		if ( MSGID_AVAILABLE_COMM == msgid )
+		{
+			continue;
+		}
 
 		//查询消息处理者
 		FnExecuteRCCommand fnCallback = NULL;
 		LPVOID lpParameter = NULL;
 		if (! Manager::GetInstanceRef().QueryCommandHandler(msgid, &fnCallback, &lpParameter)
-			|| NULL == fnCallback)
+			|| NULL == fnCallback )
 		{
 			errorLog(_T("no handler for [%I64u]"), msgid);
 			CommData reply;
@@ -417,6 +396,7 @@ void CommManager::MessageSenderProc()
 
 			continue;
 		}
+
 		debugLog(_T("recv msgid[%I64u]. try to handle it"), msgid);
 
 		//使用线程池处理，或者直接处理
@@ -437,11 +417,6 @@ void CommManager::MessageSenderProc()
 			fnCallback(msgid, dataBuffer, dataBuffer.Size(), lpParameter);
 		}
 	}
-}
-
-ULONG CommManager::GetIPByCpguid( const CPGUID& cpguid )
-{
-	return Manager::GetInstanceRef().GetMasterIP();
 }
 
 void CommManager::DisconnectedNotify()

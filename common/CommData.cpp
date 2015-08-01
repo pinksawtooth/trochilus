@@ -159,7 +159,9 @@ BOOL CommData::Parse( const LPBYTE pData, DWORD dwSize )
 	tstring upt;
 	GetStrData(USING_POOL_THREAD, upt);
 	if (upt == _T("true")) m_bUsePoolThread = TRUE;
-	
+
+	GetStrData(_T("clientid"),m_clientid);
+
 	return (INVALID_MSGID != m_msgid);
 }
 
@@ -248,6 +250,7 @@ void CommData::Reply( const CommData& data )
 void CommData::SetClientID( LPCTSTR clientid )
 {
 	m_clientid = clientid;
+	SetData(_T("clientid"),clientid);
 }
 
 LPCTSTR CommData::GetClientID() const

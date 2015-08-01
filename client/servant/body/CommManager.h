@@ -1,9 +1,10 @@
 #pragma once
 #include "IComm.h"
 #include "CommData.h"
-#include "CutupProtocol.h"
 #include <deque>
 #include "../../pub/ModuleInterface.h"
+
+typedef std::deque<ByteBuffer> PostDeque;
 
 class CommManager
 {
@@ -15,9 +16,7 @@ public:
 	BOOL Str2Commname(LPCTSTR str, COMM_NAME& commName) const;
 	BOOL Commname2Str(COMM_NAME commName, tstring& str) const;
 
-	BOOL PushMsgToMaster(COMM_NAME commName, const CommData& data, CPSERIAL* pCPSerial = NULL);
-	void CleanMsgByMSGID(MSGID msgid);
-	void SendCommTestMessages();
+	BOOL PushMsgToMaster(COMM_NAME commName, CommData& data );
 	BOOL IsCommAvailable(COMM_NAME commName) const;
 	BOOL IsConnected() const;
 
@@ -26,9 +25,6 @@ public:
 	
 	BOOL Send(COMM_NAME commName, ULONG targetIP, const LPBYTE pData, DWORD dwSize);
 	BOOL SendAndRecv(COMM_NAME commName, ULONG targetIP, const LPBYTE pSendData, DWORD dwSendSize, ByteBuffer& recvData);
-
-	BOOL ModifyPacketStatus(CPSERIAL serial,CPGUID& guid,BOOL status);
-	/*BOOL DeleteMsgBySerial*/
 private:
 	typedef struct  
 	{
@@ -46,7 +42,8 @@ private:
 	} EXECUTOR_PARAMETER, *PEXECUTOR_PARAMETER;
 
 private:
-	ULONG GetIPByCpguid(const CPGUID& cpguid);
+	PostDeque m_pd;
+
 	static DWORD WINAPI MessageSender(LPVOID lpParameter);
 	void MessageSenderProc();
 	static DWORD WINAPI CmdExcutor(LPVOID lpParameter);
@@ -54,8 +51,10 @@ private:
 	void DisconnectedNotify();
 	void ConnectedNotify();
 
+	BOOL GetMessageToSend(COMM_NAME& name,ByteBuffer& buffer);
+	void CreateEmptyPacket(ByteBuffer& buffer);
+
 private:
-	CutupProtocol	m_cp;
 	IComm*			m_commList[COMMNAME_MAX];
 	BOOL			m_commAvailableList[COMMNAME_MAX];
 	COMM_NAME		m_defaultCommName;
@@ -65,4 +64,8 @@ private:
 	BOOL			m_bWorking;
 	DWORD			m_dwMsgIntervalMS;
 	Thread			m_messageSenderThread;
+
+	tstring m_clientid;
+
+	CriticalSection m_cspd;
 };

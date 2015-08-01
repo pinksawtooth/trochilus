@@ -42,12 +42,6 @@ SERVANT_API void InitServant()
 		return;
 	}
 
-	if (! Manager::GetInstanceRef().Init())
-	{
-		errorLog(_T("init servant manager failed"));
-		return;
-	}
-
 	CommManager::GetInstanceRef().SetDefaultComm((COMM_NAME)g_ConfigInfo.nDefaultCommType);
 
 	tstring proto;
@@ -112,11 +106,6 @@ SERVANT_API BOOL SendMsg( const LPBYTE pData, DWORD dwSize, COMM_NAME commname /
 	CommManager::GetInstanceRef().PushMsgToMaster(commname, commData);
 
 	return TRUE;
-}
-
-SERVANT_API GUID GetCID()
-{
-	return Manager::GetInstanceRef().GetClientID();
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,

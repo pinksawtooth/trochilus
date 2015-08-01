@@ -79,9 +79,6 @@ MASTER2_API LPCTSTR GetMasterErrorMsg(DWORD dwLastError);
 //查询当前可用的客户端id列表
 MASTER2_API void ListAvailableClients(MyStringList* pClientidList);
 
-//查询客户端中可用的模块列表
-MASTER2_API BOOL ListModules(LPCTSTR clientid, MyStringList* pModulenameList);
-
 //向客户端中安装模块
 MASTER2_API BOOL InstallClientModule(LPCTSTR clientid, LPCTSTR moduleName);
 

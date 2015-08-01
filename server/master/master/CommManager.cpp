@@ -30,23 +30,6 @@ BOOL CommManager::Init()
 	WSAData wsaData = {0};
 	::WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-	if (! m_cp.Init())
-	{
-		errorLog(_T("init cutup protocol failed"));
-		return FALSE;
-	}
-// 	if (! m_icmpSocket.Create())
-// 	{
-// 		errorLog(_T("create icmp listen socket failed."));
-// 		return FALSE;
-// 	}
-// 	m_bListenIcmp = TRUE;
-// 	if (! m_icmpRecvThread.Start(IcmpListenThread, this))
-// 	{
-// 		errorLog(_T("start icmp listen thread failed"));
-// 		return FALSE;
-// 	}
-
 	RegisterMsgHandler(MSGID_AVAILABLE_COMM, MsgHandler_AvailableComm, this);
 
 	return TRUE;
@@ -54,8 +37,6 @@ BOOL CommManager::Init()
 
 void CommManager::Deinit()
 {
-	m_cp.Deinit();
-
 	m_bListenIcmp = FALSE;
 	m_icmpRecvThread.WaitForEnd();
 
@@ -258,17 +239,26 @@ BOOL CommManager::DeleteCommService(int serialid)
 
 	return bRet;
 }
-
-BOOL CommManager::ModifyPacketStatus( CPSERIAL serial,LPCTSTR clientid,BOOL status )
+BOOL CommManager::PutMessage( LPCTSTR clientid, ByteBuffer& buffer )
 {
-	CPGUID guid;
-	if(!m_cp.Str2CPGuid(clientid,guid))
-	{
-		return FALSE;
-	}
-	return m_cp.ModifyPacketStatus(guid,serial,status);
-}
+	BOOL ret  = FALSE;
 
+	m_cspd.Enter();
+
+	if (m_post.find(clientid) != m_post.end())
+	{
+		m_post[clientid].push_back(buffer);
+	}
+	else
+	{
+		PostDeque pd;
+		pd.push_back(buffer);
+		m_post[clientid] = pd;
+	}
+	m_cspd.Leave();
+
+	return ret;
+}
 MSGSERIALID CommManager::AddToSendMessage( LPCTSTR clientid, const CommData& commData, BOOL bNeedReply /*= TRUE*/ )
 {
 	static MSGSERIALID s_serialid = 0;
@@ -277,13 +267,6 @@ MSGSERIALID CommManager::AddToSendMessage( LPCTSTR clientid, const CommData& com
 		__time64_t now;
 		_time64(&now);
 		s_serialid = now;
-	}
-
-	CPGUID cpguid;
-	if (! CutupProtocol::Str2CPGuid(clientid, cpguid))
-	{
-		errorLog(_T("transfer clientid failed[%s]"), clientid);
-		return INVALID_MSGSERIALID;
 	}
 
 	MSGSERIALID ret = INVALID_MSGSERIALID;
@@ -315,12 +298,11 @@ MSGSERIALID CommManager::AddToSendMessage( LPCTSTR clientid, const CommData& com
 					aa.bReply = FALSE;
 					aa.sendData = commData;
 					aa.sendData.SetSerialID(s_serialid);
-					aa.cpSerial = 0;
 					ret = s_serialid;
 
 					ByteBuffer toSendData;
 					aa.sendData.Serialize(toSendData);
-					BOOL bPutMsg = m_cp.PutMessage(cpguid, toSendData, toSendData.Size(), COMMNAME_DEFAULT, 0, &aa.cpSerial);
+					BOOL bPutMsg = PutMessage( clientid, toSendData );
 					if (! bPutMsg)
 					{
 						errorLog(_T("put message msgid[%I64u] failed"), aa.sendData.GetMsgID());
@@ -343,7 +325,7 @@ MSGSERIALID CommManager::AddToSendMessage( LPCTSTR clientid, const CommData& com
 			ByteBuffer toSendData;
 			sendData.Serialize(toSendData);
 			CPSERIAL cpSerial = 0;
-			BOOL bPutMsg = m_cp.PutMessage(cpguid, toSendData, toSendData.Size(), COMMNAME_DEFAULT, 0, &cpSerial);
+			BOOL bPutMsg = PutMessage(clientid, toSendData);
 			if (! bPutMsg)
 			{
 				errorLog(_T("put message msgid[%I64u][noreply] failed"), sendData.GetMsgID());
@@ -495,14 +477,14 @@ BOOL CommManager::UdpMsgHandler( LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuff
 {
 	BOOL bValidData = FALSE;
 
-	return CommManager::GetInstanceRef().HandleMessageAndReply(sin,data , size, COMMNAME_UDP, bValidData, UDP_COMM_REPLY_MAXSIZE, toSender);
+	return CommManager::GetInstanceRef().HandleMessageAndReply(sin,data , size, bValidData, toSender);
 }
 
 BOOL CommManager::TcpMsgHandler( LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender )
 {
 	BOOL bValidData = FALSE;
 
-	return CommManager::GetInstanceRef().HandleMessageAndReply(sin,data , size, COMMNAME_TCP, bValidData, TCP_COMM_REPLY_MAXSIZE, toSender);
+	return CommManager::GetInstanceRef().HandleMessageAndReply(sin,data , size, bValidData, toSender);
 }
 int CommManager::HttpMsgHandler( struct mg_connection *conn, enum mg_event ev )
 {
@@ -532,7 +514,7 @@ int CommManager::HttpMsgHandler( struct mg_connection *conn, enum mg_event ev )
 
 		addr.sin_addr.S_un.S_addr = inet_addr(conn->remote_ip);
 
-		bNeedReply = CommManager::GetInstanceRef().HandleMessageAndReply(addr,(LPBYTE)conn->content , conn->content_len, COMMNAME_HTTP, bValidData, HTTP_COMM_REPLY_MAXSIZE, toSendBuffer);
+		bNeedReply = CommManager::GetInstanceRef().HandleMessageAndReply(addr,(LPBYTE)conn->content , conn->content_len, bValidData, toSendBuffer);
 
 		sprintf_s(szLength,"%d",toSendBuffer.Size());
 
@@ -547,7 +529,7 @@ int CommManager::HttpMsgHandler( struct mg_connection *conn, enum mg_event ev )
 	}
 }
 
-BOOL CommManager::HandleMessage( SOCKADDR_IN fromAddr, const LPBYTE pData, DWORD dwDataSize, COMM_NAME commName, CPGUID& cpguid )
+BOOL CommManager::HandleMessage( SOCKADDR_IN fromAddr, const LPBYTE pData, DWORD dwDataSize,tstring& clientid )
 {
 	ByteBuffer dataBuffer;
 	dataBuffer.Alloc(dwDataSize);
@@ -556,50 +538,43 @@ BOOL CommManager::HandleMessage( SOCKADDR_IN fromAddr, const LPBYTE pData, DWORD
 		return FALSE;
 	}
 
-	BOOL bRet = m_cp.AddRecvPacket(dataBuffer, dataBuffer.Size(), commName, &cpguid);
+	CommData recvCommdata;
 
-	if (m_cp.HasReceivedMsg())
+	BOOL ret = recvCommdata.Parse(dataBuffer, dataBuffer.Size());
+
+	//解析数据
+	if ( ret )
 	{
-		CPGUID from;
-		ByteBuffer recvMsgData;
-		if (m_cp.RecvMsg(recvMsgData, from))
-		{
-			//解析数据
-			CommData recvCommdata;
-			if (recvCommdata.Parse(recvMsgData, recvMsgData.Size()))
-			{
-				debugLog(_T("recv msg msgid[%I64u] serial[%I64u]"), recvCommdata.GetMsgID(), recvCommdata.GetSerialID());
-				tstring clientid;
-				CutupProtocol::CPGuid2Str(from, clientid);
-				recvCommdata.SetClientID(clientid.c_str());
+		debugLog(_T("recv msg msgid[%I64u] serial[%I64u]"), recvCommdata.GetMsgID(), recvCommdata.GetSerialID());
 
-				SetMessageToAnswer(recvCommdata);
+		SetMessageToAnswer(recvCommdata);
+		HandleMsgByMsgHandler(recvCommdata.GetMsgID(), recvCommdata);
 
-				HandleMsgByMsgHandler(recvCommdata.GetMsgID(), recvCommdata);
-			}
-			else
-			{
-				errorLog(_T("parse message failed"));
-			}
-		}
-	}
-
-	if (bRet)
-	{
 		//更新心跳数据
-		tstring clientid;
-		CutupProtocol::CPGuid2Str(cpguid, clientid);
-		
+		clientid = recvCommdata.GetClientID();
+
 		UpdateHeartbeat(clientid.c_str(), fromAddr);
 	}
+	else
+	{
+		errorLog(_T("parse message failed"));
+	}
 
-	return bRet;
+	return ret;
 }
 
-BOOL CommManager::HandleMessageAndReply( SOCKADDR_IN fromAddr, const LPBYTE pData, DWORD dwDataSize, COMM_NAME commName, BOOL& bValidData, DWORD replyMaxDataSize, ByteBuffer& replyBuffer )
+void CommManager::CreateEmptyPacket(ByteBuffer& buffer)
 {
-	CPGUID cpguid;
-	bValidData = HandleMessage(fromAddr, pData, dwDataSize, commName, cpguid);
+	CommData data;
+	data.SetMsgID(MSGID_AVAILABLE_COMM);
+
+	data.Serialize(buffer);
+}
+
+BOOL CommManager::HandleMessageAndReply( SOCKADDR_IN fromAddr, const LPBYTE pData, DWORD dwDataSize, BOOL& bValidData, ByteBuffer& replyBuffer )
+{
+	tstring clientid;
+	bValidData = HandleMessage(fromAddr, pData, dwDataSize, clientid);
 	if (! bValidData)
 	{
 		return FALSE;
@@ -607,37 +582,30 @@ BOOL CommManager::HandleMessageAndReply( SOCKADDR_IN fromAddr, const LPBYTE pDat
 
 	//找到需要发送的消息
 	ByteBuffer toSendData;
-	if (! m_cp.GetMessageToSendById(cpguid, replyMaxDataSize, toSendData))
+
+	m_cspd.Enter();
+
+	if ( m_post.find(clientid)  != m_post.end() )
 	{
-		m_cp.CreateEmptyPacket(toSendData);
+		PostDeque &m_pd = m_post[clientid];
+
+		if (m_pd.size() != 0)
+		{
+			toSendData = m_pd.front();
+			m_pd.pop_front();
+		}
+		else
+		{
+			CreateEmptyPacket(toSendData);
+		}
 	}
-	
+
+	m_cspd.Leave();
+
 	replyBuffer.Alloc(toSendData.Size());
 	BOOL bEncryptOK = XorFibonacciCrypt((LPBYTE)toSendData, toSendData.Size(), (LPBYTE)replyBuffer, 2, 7);
 
 	return bEncryptOK;
-}
-
-BOOL CommManager::GetPacketForClient( const CPGUID& cpguid, PCP_PACKET* ppPacket )
-{
-	BOOL bRet = FALSE;
-	m_mapSection.Enter();
-	{
-		ToSendPacketMap::iterator finditer = m_tosendPacketMap.find(cpguid);
-		if (finditer != m_tosendPacketMap.end())
-		{
-			ToSendPacketQueue& packetQueue = finditer->second;
-			if (packetQueue.size() > 0)
-			{
-				*ppPacket = packetQueue.front();
-				packetQueue.pop_front();
-				bRet = TRUE;
-			}
-		}
-	}
-	m_mapSection.Leave();
-
-	return bRet;
 }
 
 BOOL CommManager::SetMessageToAnswer( const CommData& commData )
@@ -701,63 +669,14 @@ BOOL CommManager::MsgHandler_AvailableComm( MSGID msgid, const CommData& commDat
 {
 	DECLARE_UINT64_PARAM(commname);
 
-	CommManager* pMgr = (CommManager*) lpParameter;
-
-	CommData reply;
-	reply.Reply(commData);
-	reply.SetData(_T("commname"), commname);
-
-	pMgr->AddToSendMessage(commData.GetClientID(), reply, FALSE);
-
-	return TRUE;
-}
-
-BOOL CommManager::QuerySendStatus( LPCTSTR clientid, MSGSERIALID serialid, DWORD& dwSentBytes, DWORD& dwTotalBytes )
-{
-	CPSERIAL cpserial = 0;
-	BOOL bFound = FALSE;
-	m_mapSection.Enter();
-	{
-		ClientDataMap::iterator finditer = m_clientDataMap.find(clientid);
-		if (finditer != m_clientDataMap.end())
-		{
-			DataMap& dataMap = finditer->second;
-			DataMap::iterator msgiter = dataMap.find(serialid);
-			if (msgiter != dataMap.end())
-			{
-				cpserial = msgiter->second.cpSerial;
-				bFound = TRUE;
-			}
-		}
-	}
-	m_mapSection.Leave();
-
-	if (! bFound) return FALSE;
-
-	CPGUID cpguid;
-	if (! CutupProtocol::Str2CPGuid(clientid, cpguid))
-	{
-		errorLog(_T("transfer clientid failed[%s]"), clientid);
-		return FALSE;
-	}
-
-	if (! m_cp.QuerySendStatus(cpguid, cpserial, dwSentBytes, dwTotalBytes))
-	{
-		errorLog(_T("query send status from cp failed. [%s][%I64u]"), clientid, serialid);
-		return FALSE;
-	}
+// 	CommManager* pMgr = (CommManager*) lpParameter;
+// 
+// 	CommData reply;
+// 	reply.Reply(commData);
+// 	reply.SetData(_T("commname"), commname);
+// 
+// 	pMgr->AddToSendMessage(commData.GetClientID(), reply, FALSE);
 
 	return TRUE;
 }
 
-BOOL CommManager::QueryRecvStatus( LPCTSTR clientid, CPSERIAL cpserial, DWORD& dwRecvBytes )
-{
-	CPGUID cpguid;
-	if (! CutupProtocol::Str2CPGuid(clientid, cpguid))
-	{
-		errorLog(_T("transfer clientid failed[%s]"), clientid);
-		return FALSE;
-	}
-
-	return m_cp.QueryRecvStatus(cpguid, cpserial, dwRecvBytes);
-}

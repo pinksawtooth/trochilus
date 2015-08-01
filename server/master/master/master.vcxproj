@@ -137,10 +137,9 @@
     <ClInclude Include="..\..\..\common\CommData.h" />
     <ClInclude Include="..\..\..\common\CommDataUtils.h" />
     <ClInclude Include="..\..\..\common\CommonHeader.h" />
-    <ClInclude Include="..\..\..\common\CutupProtocol.h" />
-    <ClInclude Include="..\..\..\common\CutupProtocolStructs.h" />
     <ClInclude Include="..\..\..\common\DnsResolver.h" />
     <ClInclude Include="..\..\..\common\FileParser.h" />
+    <ClInclude Include="..\..\..\common\GuidStructs.h" />
     <ClInclude Include="..\..\..\common\MessageDefines.h" />
     <ClInclude Include="..\..\pub\ModuleMessage.h" />
     <ClInclude Include="ClientInfoCallbacks.h" />
@@ -185,7 +184,6 @@
     <ClCompile Include="..\..\..\base\include\tstring.cpp" />
     <ClCompile Include="..\..\..\common\CommData.cpp" />
     <ClCompile Include="..\..\..\common\CommDataUtils.cpp" />
-    <ClCompile Include="..\..\..\common\CutupProtocol.cpp" />
     <ClCompile Include="..\..\..\common\DnsResolver.cpp" />
     <ClCompile Include="..\..\..\common\FileParser.cpp" />
     <ClCompile Include="ClientInfoManager.cpp" />

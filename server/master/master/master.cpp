@@ -328,39 +328,6 @@ MASTER2_API void AsynListDisks( LPCWSTR clientid,BOOL isClient, FnModuleNotifyPr
 	CreateThread(NULL,0,ListDiskThread, pData,0, &dwThreadId);
 }
 
-MASTER2_API BOOL ListModules( LPCTSTR clientid, MyStringList* pModulenameList)
-{
-	if (NULL == clientid || NULL == pModulenameList) return FALSE;
-
-	CommData sendData;
-	sendData.SetMsgID(MSGID_LIST_MOD);
-	
-	MSGSERIALID serialID = CommManager::GetInstanceRef().AddToSendMessage(clientid, sendData);
-	if (INVALID_MSGSERIALID == serialID)
-	{
-		errorLog(_T("add to send msg failed"));
-		return FALSE;
-	}
-
-	CommData commData;
-	if (! WaitForReply(clientid, serialID, commData))
-	{
-		return FALSE;
-	}
-
-	DECLARE_STR_PARAM_API(mods);
-	trim(mods, ',');
-	TStringVector modnameList;
-	splitByChar(mods.c_str(), modnameList, ',');
-	pModulenameList->Alloc(modnameList.size());
-	for (DWORD i = 0; i < pModulenameList->Count(); i++)
-	{
-		pModulenameList->At(i) = modnameList[i].c_str();
-	}
-
-	return TRUE;
-}
-
 MASTER2_API int AddCommService(int port,int name)
 {
 	return CommManager::GetInstanceRef().AddCommService(port,name);
@@ -371,12 +338,6 @@ MASTER2_API BOOL DeleteCommService(int serialid)
 	return CommManager::GetInstanceRef().DeleteCommService(serialid);
 }
 
-MASTER2_API BOOL InstallClientModule(LPCTSTR clientid, LPCTSTR moduleName)
-{
-	if (NULL == clientid || NULL == moduleName) return FALSE;
-
-	return ClientInfoManager::GetInstanceRef().InstallModule(clientid, moduleName);
-}
 
 MASTER2_API BOOL MakeClientSelfDestruction( LPCTSTR clientid )
 {
@@ -480,19 +441,6 @@ MASTER2_API void RegisterCommMsgHandler( MSGID msgid, FnMsgHandler fnHandler, LP
 {
 	CommManager::GetInstanceRef().RegisterMsgHandler(msgid, fnHandler, lpParameter);
 }
-
-MASTER2_API BOOL QuerySendingMessageStatus( LPCTSTR clientid, MSGSERIALID sendMsgserialid, DWORD* pdwSentBytes, DWORD* pdwTotalBytes )
-{
-	if (NULL == clientid || INVALID_MSGSERIALID == sendMsgserialid || NULL == pdwSentBytes || NULL == pdwTotalBytes) return FALSE;
-
-	return CommManager::GetInstanceRef().QuerySendStatus(clientid, sendMsgserialid, *pdwSentBytes, *pdwTotalBytes);
-}
-
-MASTER2_API BOOL ModifyPacketStatus(ULONG serial,LPCTSTR clientid,BOOL status)
-{
-	return CommManager::GetInstanceRef().ModifyPacketStatus(serial,clientid,status);
-}
-
 
 /***********************文件管理API***********************************/
 

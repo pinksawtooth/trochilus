@@ -181,10 +181,9 @@
     <ClInclude Include="..\..\..\common\BinNames.h" />
     <ClInclude Include="..\..\..\common\CommData.h" />
     <ClInclude Include="..\..\..\common\CommonHeader.h" />
-    <ClInclude Include="..\..\..\common\CutupProtocol.h" />
-    <ClInclude Include="..\..\..\common\CutupProtocolStructs.h" />
     <ClInclude Include="..\..\..\common\CommNames.h" />
     <ClInclude Include="..\..\..\common\FileParser.h" />
+    <ClInclude Include="..\..\..\common\GuidStructs.h" />
     <ClInclude Include="..\..\..\common\MessageDefines.h" />
     <ClInclude Include="..\..\pub\ConfigInfo.h" />
     <ClInclude Include="..\..\pub\ModuleInterface.h" />
@@ -221,7 +220,6 @@
     <ClCompile Include="..\..\..\base\include\tstring.cpp" />
     <ClCompile Include="..\..\..\base\include\winhttp\http.cpp" />
     <ClCompile Include="..\..\..\common\CommData.cpp" />
-    <ClCompile Include="..\..\..\common\CutupProtocol.cpp" />
     <ClCompile Include="..\..\..\common\FileParser.cpp" />
     <ClCompile Include="CmdRedirector.cpp" />
     <ClCompile Include="CommManager.cpp" />

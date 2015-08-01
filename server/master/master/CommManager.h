@@ -1,10 +1,15 @@
 #pragma once
 #include <list>
 #include <map>
-#include "CutupProtocol.h"
+#include <deque>
 #include "CommCallback.h"
 #include "CommData.h"
 #include "TcpDefines.h"
+#include "GuidStructs.h"
+#include "CommNames.h"
+
+typedef std::deque<ByteBuffer> PostDeque;
+typedef std::map<tstring , PostDeque> PostMap;
 
 #ifdef DEBUG
 #define MAX_HERAT_BEAT 5
@@ -32,19 +37,18 @@ public:
 	void ListAvailableClient(TStringVector& clientidList, DWORD dwDiffS = MAX_HERAT_BEAT);
 	BOOL GetLastConnectionAddr(LPCTSTR clientid, SOCKADDR_IN& addr);
 	void RegisterMsgHandler(MSGID msgid, FnMsgHandler fnHandler, LPVOID lpParameter);
-	BOOL QuerySendStatus(LPCTSTR clientid, MSGSERIALID serialid, DWORD& dwSentBytes, DWORD& dwTotalBytes);
-	BOOL QueryRecvStatus(LPCTSTR clientid, CPSERIAL cpserial, DWORD& dwRecvBytes);
+
+	BOOL PutMessage( LPCTSTR clientid, ByteBuffer& buffer  );
+	void CreateEmptyPacket(ByteBuffer& buffer);
 
 	int AddCommService(int port,int name);
 	BOOL DeleteCommService(int serialid);
 
-	BOOL ModifyPacketStatus(CPSERIAL serial,LPCTSTR clientid,BOOL status);
 private:
 	//消息发送和应答数据结构
 	typedef struct  
 	{
 		CommData	sendData;
-		CPSERIAL	cpSerial;
 		BOOL		bReply;
 		CommData	replyData;
 	} SEND_AND_REPLY;
@@ -69,14 +73,13 @@ private:
 		FnMsgHandler	fnCallback;
 		LPVOID			lpParameter;
 	} MSG_HANDLER_INFO;
+
 	typedef std::vector<MSG_HANDLER_INFO> MsgHandlerInfoList;
 	typedef std::map<MSGID, MsgHandlerInfoList> MsgHandlerMap;
 	
 private:
-	BOOL HandleMessage(SOCKADDR_IN fromAddr, const LPBYTE pData, DWORD dwDataSize, COMM_NAME commName, CPGUID& cpguid);
-	BOOL HandleMessageAndReply(SOCKADDR_IN fromAddr, const LPBYTE pData, DWORD dwDataSize, COMM_NAME commName, BOOL& bValidData, DWORD replyMaxDataSize, ByteBuffer& replyBuffer);
-
-	BOOL GetPacketForClient(const CPGUID& cpguid, PCP_PACKET* ppPacket);
+	BOOL HandleMessage(SOCKADDR_IN fromAddr, const LPBYTE pData, DWORD dwDataSize,tstring& clientid);
+	BOOL HandleMessageAndReply(SOCKADDR_IN fromAddr, const LPBYTE pData, DWORD dwDataSize, BOOL& bValidData, ByteBuffer& replyBuffer);
 
 	BOOL SetMessageToAnswer(const CommData& commData);
 	void UpdateHeartbeat(LPCTSTR clientid, SOCKADDR_IN addr);
@@ -94,7 +97,8 @@ private:
 	static BOOL UdpMsgHandler(LPBYTE data,DWORD size,SOCKADDR_IN sin,ByteBuffer& toSender);
 
 private:
-	CutupProtocol	m_cp;
+	PostMap			m_post;
+	CriticalSection m_cspd;
 
 	CriticalSection	m_mapSection;
 	ClientDataMap	m_clientDataMap;

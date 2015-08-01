@@ -44,7 +44,6 @@ public:
 	BOOL StartWorking();
 	BOOL GetClientBaseInfo(LPCTSTR clientid, CLIENT_BASE_INFO& baseInfo);
 	void SetCallbacks(FnNotifyProc fnCallback, LPVOID lpParameter);
-	BOOL InstallModule(LPCTSTR clientid, LPCTSTR moduleName);
 	void TransferInfo(LPCTSTR clientid, const CLIENT_BASE_INFO* pBaseInfo, CLIENT_INFO& info) const;
 
 	void HandleInstalMsg(tstring clientid,CLIENT_BASE_INFO& info);

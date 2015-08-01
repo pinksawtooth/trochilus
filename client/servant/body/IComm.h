@@ -8,7 +8,6 @@ public:
 	virtual BOOL CanRecv() const {return TRUE;};
 	virtual BOOL Init() {return TRUE;};
 
-	virtual DWORD GetMaxDataSizePerPacket() {return 512;};
 	virtual BOOL Send(ULONG targetIP, const LPBYTE pData, DWORD dwSize) = 0;
 	virtual BOOL SendAndRecv(ULONG targetIP, const LPBYTE pSendData, DWORD dwSendSize,
 		LPBYTE* pRecvData, DWORD& dwRecvSize)

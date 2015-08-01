@@ -126,9 +126,6 @@
     <ClInclude Include="..\..\..\common\DnsResolver.h">
       <Filter>include\dns</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\common\CutupProtocol.h">
-      <Filter>global_common</Filter>
-    </ClInclude>
     <ClInclude Include="MasterError.h">
       <Filter>main</Filter>
     </ClInclude>
@@ -152,9 +149,6 @@
     </ClInclude>
     <ClInclude Include="MessageRecorder.h">
       <Filter>comm</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\common\CutupProtocolStructs.h">
-      <Filter>global_common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\common\CommonHeader.h">
       <Filter>global_common</Filter>
@@ -303,6 +297,9 @@
     <ClInclude Include="..\..\..\base\include\rsa\librsa.h">
       <Filter>include\rsa</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\common\GuidStructs.h">
+      <Filter>global_common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -328,9 +325,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\common\DnsResolver.cpp">
       <Filter>include\dns</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\common\CutupProtocol.cpp">
-      <Filter>global_common</Filter>
     </ClCompile>
     <ClCompile Include="ClientInfoManager.cpp">
       <Filter>clientinfo</Filter>

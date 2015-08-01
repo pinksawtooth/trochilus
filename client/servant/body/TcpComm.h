@@ -13,7 +13,6 @@ public:
 
 	//实现IComm接口
 	virtual COMM_NAME GetName() {return COMMNAME_TCP; };
-	virtual DWORD GetMaxDataSizePerPacket() {return TCP_COMM_REQUEST_MAXSIZE;};
 	virtual BOOL SendAndRecv( ULONG targetIP, const LPBYTE pSendData, DWORD dwSendSize, LPBYTE* pRecvData, DWORD& dwRecvSize );
 
 private:

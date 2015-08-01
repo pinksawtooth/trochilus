@@ -4,19 +4,16 @@ EXPORTS
 	GetMasterLastError		@1
 	GetMasterErrorMsg		@2
 	ListAvailableClients	@3
-	ListModules				@4
 
 	SetClientInfoNotifies	@5
 	StartMasterWorking		@6
 
-	InstallClientModule		@7
 	ListAvailableClientModules	@8
 	MakeClientSelfDestruction	@9
 	GetClientInfo			@10
 	SendMessage2Client		@11
 	GetReplyByMsgserialid	@12
 	RegisterCommMsgHandler	@13
-	QuerySendingMessageStatus	@14
 
 	StopMasterWorking			@18
 
